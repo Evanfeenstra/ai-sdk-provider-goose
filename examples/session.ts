@@ -5,7 +5,7 @@ export async function sessionExample() {
   console.log('=== Session Resumption Example ===\n');
 
   const binPath = '/Users/evanfeenstra/code/evanf/goose/target/debug/goose';
-  const sessionName = 'my-test-session';
+  const sessionName = `test-session-${Date.now()}`;
 
   try {
     // First call - creates new session

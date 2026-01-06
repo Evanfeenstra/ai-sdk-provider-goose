@@ -90,7 +90,7 @@ export function createGoose(
     textEmbeddingModel: (modelId: string): never => {
       throw new NoSuchModelError({
         modelId,
-        modelType: 'textEmbeddingModel',
+        modelType: 'embeddingModel',
       });
     },
     imageModel: (modelId: string): never => {
