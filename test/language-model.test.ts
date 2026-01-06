@@ -175,4 +175,62 @@ describe('GooseLanguageModel', () => {
       expect(result).toContain('Part 2');
     });
   });
+
+  describe('abort signal support', () => {
+    it('should reject doGenerate when signal is already aborted', async () => {
+      const model = new GooseLanguageModel({ id: 'goose' });
+      const controller = new AbortController();
+      controller.abort();
+
+      await expect(
+        model.doGenerate({
+          prompt: 'test',
+          abortSignal: controller.signal,
+        })
+      ).rejects.toThrow('Request aborted');
+    });
+
+    it('should reject doStream when signal is already aborted', async () => {
+      const model = new GooseLanguageModel({ id: 'goose' });
+      const controller = new AbortController();
+      controller.abort();
+
+      const result = await model.doStream({
+        prompt: 'test',
+        abortSignal: controller.signal,
+      });
+
+      // The stream should throw when we try to read from it
+      await expect(async () => {
+        for await (const chunk of result.stream) {
+          // Should not reach here
+        }
+      }).rejects.toThrow('Request aborted');
+    });
+
+    it('should kill process when abort is triggered during generation', async () => {
+      const model = new GooseLanguageModel({
+        id: 'goose',
+        settings: {
+          binPath: 'sleep', // Use 'sleep' command as a long-running process
+          timeout: 10000,
+        },
+      });
+
+      const controller = new AbortController();
+
+      // Abort after 100ms
+      setTimeout(() => controller.abort(), 100);
+
+      // Build args manually to simulate a long-running command
+      const args = (model as any).buildCLIArgs('10'); // sleep 10 seconds
+
+      // Replace with sleep command args
+      const sleepArgs = ['10'];
+
+      await expect(
+        (model as any).spawnGooseProcess(sleepArgs, controller.signal)
+      ).rejects.toThrow('Request aborted');
+    });
+  });
 });

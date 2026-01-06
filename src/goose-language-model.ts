@@ -63,7 +63,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
       args,
     });
 
-    const events = await this.spawnGooseProcess(args);
+    const events = await this.spawnGooseProcess(args, options.abortSignal);
     return this.eventsToGenerateResult(events);
   }
 
@@ -78,7 +78,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
       args,
     });
 
-    const generator = this.createStreamFromProcess(args);
+    const generator = this.createStreamFromProcess(args, options.abortSignal);
 
     // Convert async generator to ReadableStream
     const stream = new ReadableStream<LanguageModelV3StreamPart>({
@@ -114,7 +114,10 @@ export class GooseLanguageModel implements LanguageModelV3 {
     return args;
   }
 
-  private async spawnGooseProcess(args: string[]): Promise<GooseStreamEvent[]> {
+  private async spawnGooseProcess(
+    args: string[],
+    abortSignal?: AbortSignal
+  ): Promise<GooseStreamEvent[]> {
     return new Promise((resolve, reject) => {
       const events: GooseStreamEvent[] = [];
       let stderr = '';
@@ -136,6 +139,33 @@ export class GooseLanguageModel implements LanguageModelV3 {
         );
       }, this.settings.timeout);
 
+      // Handle abort signal
+      const onAbort = () => {
+        clearTimeout(timeout);
+        child.kill('SIGTERM');
+        reject(
+          createAPICallError('Request aborted', {
+            binPath: this.settings.binPath,
+            args,
+          })
+        );
+      };
+
+      if (abortSignal) {
+        if (abortSignal.aborted) {
+          onAbort();
+          return;
+        }
+        abortSignal.addEventListener('abort', onAbort, { once: true });
+      }
+
+      const cleanup = () => {
+        clearTimeout(timeout);
+        if (abortSignal) {
+          abortSignal.removeEventListener('abort', onAbort);
+        }
+      };
+
       const rl = createInterface({ input: child.stdout });
 
       rl.on('line', (line) => {
@@ -153,7 +183,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
       });
 
       child.on('error', (error) => {
-        clearTimeout(timeout);
+        cleanup();
         reject(
           createAPICallError(`Failed to spawn Goose CLI: ${error.message}`, {
             binPath: this.settings.binPath,
@@ -163,13 +193,13 @@ export class GooseLanguageModel implements LanguageModelV3 {
       });
 
       child.on('close', (code) => {
-        clearTimeout(timeout);
+        cleanup();
 
-        if (code !== 0) {
+        if (code !== 0 && code !== null) {
           reject(
             createProcessError(
               `Goose CLI exited with code ${code}`,
-              code || 1,
+              code,
               stderr,
               { binPath: this.settings.binPath, args }
             )
@@ -182,7 +212,8 @@ export class GooseLanguageModel implements LanguageModelV3 {
   }
 
   private async *createStreamFromProcess(
-    args: string[]
+    args: string[],
+    abortSignal?: AbortSignal
   ): AsyncGenerator<LanguageModelV3StreamPart> {
     const child = spawn(this.settings.binPath, args);
     const rl = createInterface({ input: child.stdout });
@@ -191,6 +222,22 @@ export class GooseLanguageModel implements LanguageModelV3 {
     child.stderr.on('data', (data) => {
       stderr += data.toString();
     });
+
+    // Handle abort signal
+    const onAbort = () => {
+      child.kill('SIGTERM');
+    };
+
+    if (abortSignal) {
+      if (abortSignal.aborted) {
+        child.kill('SIGTERM');
+        throw createAPICallError('Request aborted', {
+          binPath: this.settings.binPath,
+          args,
+        });
+      }
+      abortSignal.addEventListener('abort', onAbort, { once: true });
+    }
 
     let currentTextPartId: string | null = null;
     let textStartEmitted = false;
@@ -287,12 +334,19 @@ export class GooseLanguageModel implements LanguageModelV3 {
       }
     } catch (err) {
       child.kill();
+      if (abortSignal) {
+        abortSignal.removeEventListener('abort', onAbort);
+      }
       throw err;
     }
 
     const exitCode = await new Promise<number>((resolve) => {
       child.on('close', (code) => resolve(code || 0));
     });
+
+    if (abortSignal) {
+      abortSignal.removeEventListener('abort', onAbort);
+    }
 
     if (exitCode !== 0) {
       throw createProcessError(
