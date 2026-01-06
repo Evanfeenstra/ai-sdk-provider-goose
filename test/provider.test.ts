@@ -80,14 +80,21 @@ describe('GooseProvider', () => {
   });
 
   describe('unsupported model types', () => {
-    it('should throw error for textEmbeddingModel', () => {
+    it('should throw error for embeddingModel', () => {
       const provider = createGoose();
-      expect(() => provider.textEmbeddingModel('test')).toThrow();
+      expect(() => provider.embeddingModel('test')).toThrow();
     });
 
     it('should throw error for imageModel', () => {
       const provider = createGoose();
       expect(() => provider.imageModel('test')).toThrow();
+    });
+  });
+
+  describe('V3 specification', () => {
+    it('should have specificationVersion v3', () => {
+      const provider = createGoose();
+      expect(provider.specificationVersion).toBe('v3');
     });
   });
 });

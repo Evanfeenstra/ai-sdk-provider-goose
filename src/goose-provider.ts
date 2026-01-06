@@ -1,4 +1,4 @@
-import type { LanguageModelV2, ProviderV2 } from '@ai-sdk/provider';
+import type { LanguageModelV3, ProviderV3 } from '@ai-sdk/provider';
 import { NoSuchModelError } from '@ai-sdk/provider';
 import {
   GooseLanguageModel,
@@ -7,28 +7,28 @@ import {
 import type { GooseSettings } from './types.js';
 
 /**
- * Goose provider interface extending AI SDK ProviderV2.
+ * Goose provider interface extending AI SDK ProviderV3.
  */
-export interface GooseProvider extends ProviderV2 {
+export interface GooseProvider extends ProviderV3 {
   /**
    * Create a language model (callable shorthand).
    */
-  (modelId: GooseModelId, settings?: GooseSettings): LanguageModelV2;
+  (modelId: GooseModelId, settings?: GooseSettings): LanguageModelV3;
 
   /**
    * Create a language model.
    */
-  languageModel(modelId: GooseModelId, settings?: GooseSettings): LanguageModelV2;
+  languageModel(modelId: GooseModelId, settings?: GooseSettings): LanguageModelV3;
 
   /**
    * Alias for languageModel (follows AI SDK pattern).
    */
-  chat(modelId: GooseModelId, settings?: GooseSettings): LanguageModelV2;
+  chat(modelId: GooseModelId, settings?: GooseSettings): LanguageModelV3;
 
   /**
-   * Text embedding models are not supported.
+   * Embedding models are not supported.
    */
-  textEmbeddingModel(modelId: string): never;
+  embeddingModel(modelId: string): never;
 
   /**
    * Image models are not supported.
@@ -65,7 +65,7 @@ export function createGoose(
   const createModel = (
     modelId: GooseModelId,
     modelSettings?: GooseSettings
-  ): LanguageModelV2 => {
+  ): LanguageModelV3 => {
     if (modelId !== 'goose' && typeof modelId !== 'string') {
       throw new NoSuchModelError({
         modelId: String(modelId),
@@ -85,9 +85,10 @@ export function createGoose(
   };
 
   const provider = Object.assign(createModel, {
+    specificationVersion: 'v3' as const,
     languageModel: createModel,
     chat: createModel,
-    textEmbeddingModel: (modelId: string): never => {
+    embeddingModel: (modelId: string): never => {
       throw new NoSuchModelError({
         modelId,
         modelType: 'embeddingModel',
@@ -118,4 +119,4 @@ export function createGoose(
  * });
  * ```
  */
-export const goose = createGoose();
+export const goose: GooseProvider = createGoose();

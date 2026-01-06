@@ -10,8 +10,7 @@ describe('GooseLanguageModel', () => {
 
       expect(model.modelId).toBe('goose');
       expect(model.provider).toBe('goose');
-      expect(model.specificationVersion).toBe('v2');
-      expect(model.defaultObjectGenerationMode).toBe('tool');
+      expect(model.specificationVersion).toBe('v3');
     });
 
     it('should create a model with custom settings', () => {

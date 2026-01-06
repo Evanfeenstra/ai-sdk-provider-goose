@@ -1,8 +1,10 @@
 import type {
-  LanguageModelV2,
-  LanguageModelV2CallWarning,
-  LanguageModelV2FinishReason,
-  LanguageModelV2StreamPart,
+  LanguageModelV3,
+  LanguageModelV3CallOptions,
+  LanguageModelV3GenerateResult,
+  LanguageModelV3StreamResult,
+  LanguageModelV3StreamPart,
+  SharedV3Warning,
 } from '@ai-sdk/provider';
 import { spawn } from 'child_process';
 import { createInterface } from 'readline';
@@ -24,9 +26,8 @@ export interface GooseLanguageModelOptions {
 /**
  * Goose CLI language model implementation for AI SDK.
  */
-export class GooseLanguageModel implements LanguageModelV2 {
-  readonly specificationVersion = 'v2' as const;
-  readonly defaultObjectGenerationMode = 'tool' as const;
+export class GooseLanguageModel implements LanguageModelV3 {
+  readonly specificationVersion = 'v3' as const;
   readonly provider = 'goose';
   readonly modelId: string;
   readonly supportedUrls = {};
@@ -52,8 +53,8 @@ export class GooseLanguageModel implements LanguageModelV2 {
   }
 
   async doGenerate(
-    options: Parameters<LanguageModelV2['doGenerate']>[0]
-  ) {
+    options: LanguageModelV3CallOptions
+  ): Promise<LanguageModelV3GenerateResult> {
     const prompt = this.convertPromptToText(options.prompt);
     const args = this.buildCLIArgs(prompt);
 
@@ -67,8 +68,8 @@ export class GooseLanguageModel implements LanguageModelV2 {
   }
 
   async doStream(
-    options: Parameters<LanguageModelV2['doStream']>[0]
-  ) {
+    options: LanguageModelV3CallOptions
+  ): Promise<LanguageModelV3StreamResult> {
     const prompt = this.convertPromptToText(options.prompt);
     const args = this.buildCLIArgs(prompt);
 
@@ -80,7 +81,7 @@ export class GooseLanguageModel implements LanguageModelV2 {
     const generator = this.createStreamFromProcess(args);
 
     // Convert async generator to ReadableStream
-    const stream = new ReadableStream<LanguageModelV2StreamPart>({
+    const stream = new ReadableStream<LanguageModelV3StreamPart>({
       async start(controller) {
         try {
           for await (const part of generator) {
@@ -95,7 +96,6 @@ export class GooseLanguageModel implements LanguageModelV2 {
 
     return {
       stream,
-      rawCall: { rawPrompt: prompt, rawSettings: {} },
     };
   }
 
@@ -183,7 +183,7 @@ export class GooseLanguageModel implements LanguageModelV2 {
 
   private async *createStreamFromProcess(
     args: string[]
-  ): AsyncGenerator<LanguageModelV2StreamPart> {
+  ): AsyncGenerator<LanguageModelV3StreamPart> {
     const child = spawn(this.settings.binPath, args);
     const rl = createInterface({ input: child.stdout });
 
@@ -254,11 +254,22 @@ export class GooseLanguageModel implements LanguageModelV2 {
           } else if (event.type === 'complete') {
             yield {
               type: 'finish',
-              finishReason: 'stop',
+              finishReason: {
+                unified: 'stop',
+                raw: 'stop',
+              },
               usage: {
-                inputTokens: 0,
-                outputTokens: event.total_tokens || 0,
-                totalTokens: event.total_tokens || 0,
+                inputTokens: {
+                  total: 0,
+                  noCache: undefined,
+                  cacheRead: undefined,
+                  cacheWrite: undefined,
+                },
+                outputTokens: {
+                  total: event.total_tokens || 0,
+                  text: event.total_tokens || 0,
+                  reasoning: undefined,
+                },
               },
             };
           } else if (event.type === 'error') {
@@ -294,7 +305,7 @@ export class GooseLanguageModel implements LanguageModelV2 {
   }
 
   private convertPromptToText(
-    prompt: Parameters<LanguageModelV2['doGenerate']>[0]['prompt']
+    prompt: LanguageModelV3CallOptions['prompt']
   ): string {
     if (Array.isArray(prompt)) {
       const messages: string[] = [];
@@ -328,10 +339,12 @@ export class GooseLanguageModel implements LanguageModelV2 {
     return String(prompt);
   }
 
-  private eventsToGenerateResult(events: GooseStreamEvent[]) {
+  private eventsToGenerateResult(
+    events: GooseStreamEvent[]
+  ): LanguageModelV3GenerateResult {
     let text = '';
     let totalTokens = 0;
-    const warnings: LanguageModelV2CallWarning[] = [];
+    const warnings: SharedV3Warning[] = [];
 
     for (const event of events) {
       if (event.type === 'message' && event.message) {
@@ -355,19 +368,24 @@ export class GooseLanguageModel implements LanguageModelV2 {
 
     return {
       content: [{ type: 'text' as const, text }],
-      finishReason: 'stop' as LanguageModelV2FinishReason,
+      finishReason: {
+        unified: 'stop',
+        raw: 'stop',
+      },
       usage: {
-        inputTokens: 0,
-        outputTokens: totalTokens,
-        totalTokens,
+        inputTokens: {
+          total: 0,
+          noCache: undefined,
+          cacheRead: undefined,
+          cacheWrite: undefined,
+        },
+        outputTokens: {
+          total: totalTokens,
+          text: totalTokens,
+          reasoning: undefined,
+        },
       },
       warnings,
-      rawCall: { rawPrompt: '', rawSettings: {} },
-      response: {
-        id: generateId(),
-        timestamp: new Date(),
-        modelId: this.modelId,
-      },
     };
   }
 }
