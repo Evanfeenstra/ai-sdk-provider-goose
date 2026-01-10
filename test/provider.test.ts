@@ -18,6 +18,16 @@ describe('GooseProvider', () => {
       expect(provider).toBeDefined();
     });
 
+    it('should create a provider with default model settings', () => {
+      const provider = createGoose({
+        defaultSettings: {
+          maxTurns: 500,
+          sessionName: 'default-session',
+        },
+      });
+      expect(provider).toBeDefined();
+    });
+
     it('should have languageModel method', () => {
       const provider = createGoose();
       expect(provider.languageModel).toBeDefined();
@@ -37,18 +47,25 @@ describe('GooseProvider', () => {
       expect(typeof goose).toBe('function');
     });
 
-    it('should create a model when called', () => {
+    it('should create a model with "goose" for local config', () => {
       const model = goose('goose');
       expect(model).toBeInstanceOf(GooseLanguageModel);
+      expect(model.modelId).toBe('goose');
+    });
+
+    it('should create a model when called with provider/model format', () => {
+      const model = goose('anthropic/claude-sonnet-4-5');
+      expect(model).toBeInstanceOf(GooseLanguageModel);
+      expect(model.modelId).toBe('anthropic/claude-sonnet-4-5');
     });
 
     it('should create a model with settings', () => {
-      const model = goose('goose', {
-        binPath: '/test/path',
+      const model = goose('openai/gpt-4o', {
         sessionName: 'test-session',
+        maxTurns: 100,
       });
       expect(model).toBeInstanceOf(GooseLanguageModel);
-      expect(model.modelId).toBe('goose');
+      expect(model.modelId).toBe('openai/gpt-4o');
     });
   });
 
@@ -57,9 +74,12 @@ describe('GooseProvider', () => {
       const provider = createGoose({
         binPath: '/provider/path',
         timeout: 30000,
+        defaultSettings: {
+          maxTurns: 500,
+        },
       });
 
-      const model = provider('goose', {
+      const model = provider('anthropic/claude-sonnet-4-5', {
         sessionName: 'my-session',
       });
 
@@ -68,14 +88,20 @@ describe('GooseProvider', () => {
 
     it('should create model via languageModel method', () => {
       const provider = createGoose();
-      const model = provider.languageModel('goose');
+      const model = provider.languageModel('google/gemini-2.5-pro');
       expect(model).toBeInstanceOf(GooseLanguageModel);
     });
 
     it('should create model via chat method', () => {
       const provider = createGoose();
-      const model = provider.chat('goose');
+      const model = provider.chat('xai/grok-3');
       expect(model).toBeInstanceOf(GooseLanguageModel);
+    });
+
+    it('should support ollama provider', () => {
+      const model = goose('ollama/llama3.2');
+      expect(model).toBeInstanceOf(GooseLanguageModel);
+      expect(model.modelId).toBe('ollama/llama3.2');
     });
   });
 

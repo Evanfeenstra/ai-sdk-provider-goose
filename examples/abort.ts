@@ -16,14 +16,14 @@ export async function abortExample() {
     }, 2000);
 
     try {
-      const model1 = goose('goose');
+      const model1 = goose('anthropic/claude-sonnet-4-5');
       await generateText({
         model: model1,
         prompt: 'Write a very long story about a robot',
         abortSignal: controller1.signal,
       });
       console.log('Generation completed (not expected)');
-    } catch (error) {
+    } catch (error: any) {
       console.log('Request was aborted:', error.message);
     }
 
@@ -40,7 +40,7 @@ export async function abortExample() {
     }, 2000);
 
     try {
-      const model2 = goose('goose');
+      const model2 = goose('anthropic/claude-sonnet-4-5');
       const result = streamText({
         model: model2,
         prompt: 'Count from 1 to 100 slowly',
@@ -51,7 +51,7 @@ export async function abortExample() {
         process.stdout.write(textPart);
       }
       console.log('\nStream completed (not expected)');
-    } catch (error) {
+    } catch (error: any) {
       console.log('\nStream was aborted:', error.message);
     }
   } catch (error) {

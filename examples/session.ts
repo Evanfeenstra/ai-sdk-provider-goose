@@ -9,7 +9,7 @@ export async function sessionExample() {
   try {
     // First call - creates new session
     console.log('First call - creating new session with name:', sessionName);
-    const model1 = goose('goose', { sessionName });
+    const model1 = goose('anthropic/claude-sonnet-4-5', { sessionName });
     const result1 = await generateText({
       model: model1,
       prompt: 'My name is Alice. Remember this.',
@@ -20,7 +20,7 @@ export async function sessionExample() {
 
     // Second call - resumes session
     console.log('Second call - resuming session:', sessionName);
-    const model2 = goose('goose', { sessionName, resume: true });
+    const model2 = goose('anthropic/claude-sonnet-4-5', { sessionName, resume: true });
     const result2 = await generateText({
       model: model2,
       prompt: 'What is my name?',

@@ -9,19 +9,52 @@ import type {
 import { spawn } from 'child_process';
 import { createInterface } from 'readline';
 import { generateId } from '@ai-sdk/provider-utils';
-import type { GooseSettings, GooseStreamEvent, Logger, GooseProviderName } from './types.js';
-import { API_KEY_ENV_VARS, DEFAULT_MODELS } from './types.js';
+import type {
+  GooseInternalSettings,
+  GooseStreamEvent,
+  Logger,
+  GooseProviderName,
+} from './types.js';
+import { API_KEY_ENV_VARS, PROVIDERS } from './types.js';
 import {
   createAPICallError,
   createTimeoutError,
   createProcessError,
 } from './errors.js';
 
-export type GooseModelId = 'goose' | (string & {});
+/**
+ * Model ID - either 'goose' (use local config), or 'providerID/modelID' format.
+ * @example 'goose' - uses locally configured goose
+ * @example 'anthropic/claude-sonnet-4-5' - specific provider/model
+ */
+export type GooseModelId = 'goose' | `${GooseProviderName}/${string}` | (string & {});
 
 export interface GooseLanguageModelOptions {
-  id: GooseModelId;
-  settings?: GooseSettings;
+  modelId: GooseModelId;
+  settings: GooseInternalSettings;
+}
+
+/**
+ * Parse a model ID in the format 'providerID/modelID'.
+ * Returns the provider and model name, or null if not in that format.
+ */
+function parseModelId(modelId: string): { provider: GooseProviderName; model: string } | null {
+  const slashIndex = modelId.indexOf('/');
+  if (slashIndex === -1) {
+    return null;
+  }
+
+  const providerName = modelId.slice(0, slashIndex);
+  const modelName = modelId.slice(slashIndex + 1);
+
+  if (providerName in PROVIDERS && modelName) {
+    return {
+      provider: providerName as GooseProviderName,
+      model: modelName,
+    };
+  }
+
+  return null;
 }
 
 /**
@@ -33,36 +66,31 @@ export class GooseLanguageModel implements LanguageModelV3 {
   readonly modelId: string;
   readonly supportedUrls = {};
 
-  private settings: GooseSettings & {
-    binPath: string;
-    args: string[];
-    timeout: number;
-  };
+  private settings: GooseInternalSettings;
   private logger?: Logger;
   private computedEnv?: Record<string, string>;
+  private parsedProvider?: GooseProviderName;
+  private parsedModel?: string;
 
   constructor(options: GooseLanguageModelOptions) {
-    this.modelId = options.id;
-    this.settings = {
-      binPath: options.settings?.binPath || 'goose',
-      args: options.settings?.args || [],
-      timeout: options.settings?.timeout || 120000,
-      sessionName: options.settings?.sessionName,
-      resume: options.settings?.resume || false,
-      logger: options.settings?.logger,
-      env: options.settings?.env,
-      provider: options.settings?.provider,
-      model: options.settings?.model,
-      apiKey: options.settings?.apiKey,
-      maxTurns: options.settings?.maxTurns,
-    };
+    this.modelId = options.modelId;
+    this.settings = options.settings;
     this.logger = this.settings.logger;
+
+    // Parse provider/model from modelId (if in providerID/modelID format)
+    const parsed = parseModelId(options.modelId);
+    if (parsed) {
+      this.parsedProvider = parsed.provider;
+      this.parsedModel = parsed.model;
+    }
+
     this.computedEnv = this.buildEnv();
   }
 
   /**
    * Build environment variables from settings.
-   * Provider/model/apiKey/maxTurns settings are converted to appropriate env vars.
+   * If modelId is 'goose', uses locally configured goose (no env vars set).
+   * If modelId is 'providerID/modelID', sets GOOSE_PROVIDER and GOOSE_MODEL.
    */
   private buildEnv(): Record<string, string> {
     const env: Record<string, string> = {
@@ -71,24 +99,21 @@ export class GooseLanguageModel implements LanguageModelV3 {
       ...this.settings.env,
     };
 
-    if (this.settings.provider) {
-      env.GOOSE_PROVIDER = this.settings.provider;
-
-      // Set model (use default if not specified)
-      const model = this.settings.model || DEFAULT_MODELS[this.settings.provider];
-      env.GOOSE_MODEL = model;
+    // If we parsed a provider/model from modelId, set those env vars
+    if (this.parsedProvider && this.parsedModel) {
+      env.GOOSE_PROVIDER = this.parsedProvider;
+      env.GOOSE_MODEL = this.parsedModel;
 
       // Set API key if provided
       if (this.settings.apiKey) {
-        const apiKeyEnvVar = API_KEY_ENV_VARS[this.settings.provider];
+        const apiKeyEnvVar = API_KEY_ENV_VARS[this.parsedProvider];
         if (apiKeyEnvVar) {
           env[apiKeyEnvVar] = this.settings.apiKey;
         }
       }
-    } else if (this.settings.model) {
-      // Model without provider - just set the model
-      env.GOOSE_MODEL = this.settings.model;
     }
+    // If modelId is 'goose' or doesn't match format, use local goose config
+    // (don't set GOOSE_PROVIDER or GOOSE_MODEL)
 
     if (this.settings.maxTurns !== undefined) {
       env.GOOSE_MAX_TURNS = String(this.settings.maxTurns);

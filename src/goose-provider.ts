@@ -4,7 +4,11 @@ import {
   GooseLanguageModel,
   type GooseModelId,
 } from './goose-language-model.js';
-import type { GooseSettings } from './types.js';
+import type {
+  GooseProviderSettings,
+  GooseModelSettings,
+  GooseInternalSettings,
+} from './types.js';
 
 /**
  * Goose provider interface extending AI SDK ProviderV3.
@@ -12,18 +16,27 @@ import type { GooseSettings } from './types.js';
 export interface GooseProvider extends ProviderV3 {
   /**
    * Create a language model (callable shorthand).
+   *
+   * @param modelId Model ID in 'providerID/modelID' format (e.g., 'anthropic/claude-sonnet-4-5')
+   * @param settings Optional model-level settings
+   *
+   * @example
+   * ```typescript
+   * const model = goose('anthropic/claude-sonnet-4-5');
+   * const model = goose('openai/gpt-4o', { sessionName: 'my-session' });
+   * ```
    */
-  (modelId: GooseModelId, settings?: GooseSettings): LanguageModelV3;
+  (modelId: GooseModelId, settings?: GooseModelSettings): LanguageModelV3;
 
   /**
    * Create a language model.
    */
-  languageModel(modelId: GooseModelId, settings?: GooseSettings): LanguageModelV3;
+  languageModel(modelId: GooseModelId, settings?: GooseModelSettings): LanguageModelV3;
 
   /**
    * Alias for languageModel (follows AI SDK pattern).
    */
-  chat(modelId: GooseModelId, settings?: GooseSettings): LanguageModelV3;
+  chat(modelId: GooseModelId, settings?: GooseModelSettings): LanguageModelV3;
 
   /**
    * Embedding models are not supported.
@@ -37,11 +50,6 @@ export interface GooseProvider extends ProviderV3 {
 }
 
 /**
- * Provider-level settings for Goose.
- */
-export interface GooseProviderSettings extends GooseSettings {}
-
-/**
  * Creates a Goose provider with the specified settings.
  *
  * @param settings Provider-level settings
@@ -51,12 +59,17 @@ export interface GooseProviderSettings extends GooseSettings {}
  * ```typescript
  * import { createGoose } from 'ai-sdk-provider-goose';
  *
+ * // Custom provider with settings
  * const provider = createGoose({
  *   binPath: '/path/to/goose',
  *   timeout: 60000,
+ *   defaultSettings: {
+ *     maxTurns: 500,
+ *   },
  * });
  *
- * const model = provider('goose');
+ * // Use provider/model format
+ * const model = provider('anthropic/claude-sonnet-4-5');
  * ```
  */
 export function createGoose(
@@ -64,23 +77,33 @@ export function createGoose(
 ): GooseProvider {
   const createModel = (
     modelId: GooseModelId,
-    modelSettings?: GooseSettings
+    modelSettings?: GooseModelSettings
   ): LanguageModelV3 => {
-    if (modelId !== 'goose' && typeof modelId !== 'string') {
+    if (typeof modelId !== 'string' || !modelId) {
       throw new NoSuchModelError({
         modelId: String(modelId),
         modelType: 'languageModel',
       });
     }
 
-    const mergedSettings: GooseSettings = {
-      ...settings,
+    // Merge provider defaults with model-specific settings
+    const mergedModelSettings: GooseModelSettings = {
+      ...settings.defaultSettings,
       ...modelSettings,
     };
 
+    // Build internal settings combining provider and model settings
+    const internalSettings: GooseInternalSettings = {
+      binPath: settings.binPath || 'goose',
+      timeout: settings.timeout || 120000,
+      args: settings.args || [],
+      logger: settings.logger,
+      ...mergedModelSettings,
+    };
+
     return new GooseLanguageModel({
-      id: modelId,
-      settings: mergedSettings,
+      modelId,
+      settings: internalSettings,
     });
   };
 
@@ -110,11 +133,24 @@ export function createGoose(
  *
  * @example
  * ```typescript
- * import { goose } from 'ai-sdk-provider-goose';
+ * import { goose, GooseModels } from 'ai-sdk-provider-goose';
  * import { generateText } from 'ai';
  *
+ * // Using full model ID
  * const result = await generateText({
- *   model: goose('goose'),
+ *   model: goose('anthropic/claude-sonnet-4-5'),
+ *   prompt: 'Hello!',
+ * });
+ *
+ * // Using model shortcuts
+ * const result = await generateText({
+ *   model: goose(GooseModels['claude-sonnet-4-5']),
+ *   prompt: 'Hello!',
+ * });
+ *
+ * // With model settings
+ * const result = await generateText({
+ *   model: goose('openai/gpt-4o', { sessionName: 'my-session', resume: true }),
  *   prompt: 'Hello!',
  * });
  * ```
