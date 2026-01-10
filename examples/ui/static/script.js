@@ -516,13 +516,3 @@ getQueryParam();
 
 // Focus on input
 messageInput.focus();
-
-// Update session title
-function updateSessionTitle() {
-  const titleElement = document.getElementById("session-title");
-  // Just show "goose chat" - no need to show session ID
-  titleElement.textContent = "goose chat";
-}
-
-// Update title on load
-updateSessionTitle();

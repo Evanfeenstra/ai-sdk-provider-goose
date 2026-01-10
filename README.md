@@ -37,6 +37,10 @@ const model = goose("goose", {
 });
 ```
 
-## License
+### UI
+
+`npm run ui`
+
+### License
 
 MIT

@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 import { streamText } from "ai";
-import { goose, PROVIDERS, MODELS } from "../../dist/index.js";
+import { goose } from "../../dist/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const STATIC_DIR = path.join(__dirname, "static");
@@ -160,6 +160,7 @@ async function handleStream(req, res, sessionId) {
 
     // Stream full AI SDK stream parts
     for await (const part of result.fullStream) {
+      // console.log("part", JSON.stringify(part, null, 2));
       sendSSE(res, "message", part);
     }
 
