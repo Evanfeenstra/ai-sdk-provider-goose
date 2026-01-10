@@ -35,7 +35,7 @@ describe('GooseLanguageModel', () => {
       });
 
       // Access private method via any cast for testing
-      const args = (model as any).buildCLIArgs('test prompt');
+      const args = (model as any).buildCLIArgs(undefined, 'test prompt');
 
       expect(args).toEqual([
         'run',
@@ -54,7 +54,7 @@ describe('GooseLanguageModel', () => {
         },
       });
 
-      const args = (model as any).buildCLIArgs('test prompt');
+      const args = (model as any).buildCLIArgs(undefined, 'test prompt');
 
       expect(args).toContain('--name');
       expect(args).toContain('my-session');
@@ -69,7 +69,7 @@ describe('GooseLanguageModel', () => {
         },
       });
 
-      const args = (model as any).buildCLIArgs('test prompt');
+      const args = (model as any).buildCLIArgs(undefined, 'test prompt');
 
       expect(args).toContain('--resume');
       expect(args).toContain('--name');
@@ -85,7 +85,7 @@ describe('GooseLanguageModel', () => {
         },
       });
 
-      const args = (model as any).buildCLIArgs('test prompt');
+      const args = (model as any).buildCLIArgs(undefined, 'test prompt');
 
       expect(args).not.toContain('--resume');
       expect(args).toContain('--name');
@@ -99,10 +99,23 @@ describe('GooseLanguageModel', () => {
         },
       });
 
-      const args = (model as any).buildCLIArgs('test prompt');
+      const args = (model as any).buildCLIArgs(undefined, 'test prompt');
 
       expect(args).toContain('--custom-arg');
       expect(args).toContain('value');
+    });
+
+    it('should include --system flag when system prompt is provided', () => {
+      const model = new GooseLanguageModel({
+        id: 'goose',
+      });
+
+      const args = (model as any).buildCLIArgs('You are helpful', 'test prompt');
+
+      expect(args).toContain('--system');
+      expect(args).toContain('You are helpful');
+      expect(args).toContain('-t');
+      expect(args).toContain('test prompt');
     });
 
     it('should order flags correctly', () => {
@@ -115,7 +128,7 @@ describe('GooseLanguageModel', () => {
         },
       });
 
-      const args = (model as any).buildCLIArgs('prompt');
+      const args = (model as any).buildCLIArgs(undefined, 'prompt');
 
       // Base command comes first
       expect(args[0]).toBe('run');
@@ -135,34 +148,41 @@ describe('GooseLanguageModel', () => {
     });
   });
 
-  describe('prompt conversion', () => {
-    it('should convert string prompt', () => {
+  describe('prompt extraction', () => {
+    it('should extract string prompt', () => {
       const model = new GooseLanguageModel({ id: 'goose' });
-      const result = (model as any).convertPromptToText('Hello');
-      expect(result).toBe('Hello');
+      const result = (model as any).extractPromptParts('Hello');
+      expect(result).toEqual({
+        prompt: 'Hello',
+      });
     });
 
-    it('should convert array prompt with user message', () => {
+    it('should extract array prompt with user message', () => {
       const model = new GooseLanguageModel({ id: 'goose' });
-      const result = (model as any).convertPromptToText([
+      const result = (model as any).extractPromptParts([
         { role: 'user', content: 'What is 2+2?' },
       ]);
-      expect(result).toBe('What is 2+2?');
+      expect(result).toEqual({
+        system: undefined,
+        prompt: 'What is 2+2?',
+      });
     });
 
-    it('should handle system message', () => {
+    it('should separate system and user messages', () => {
       const model = new GooseLanguageModel({ id: 'goose' });
-      const result = (model as any).convertPromptToText([
+      const result = (model as any).extractPromptParts([
         { role: 'system', content: 'You are helpful' },
         { role: 'user', content: 'Hello' },
       ]);
-      expect(result).toContain('System: You are helpful');
-      expect(result).toContain('Hello');
+      expect(result).toEqual({
+        system: 'You are helpful',
+        prompt: 'Hello',
+      });
     });
 
     it('should handle multi-part user content', () => {
       const model = new GooseLanguageModel({ id: 'goose' });
-      const result = (model as any).convertPromptToText([
+      const result = (model as any).extractPromptParts([
         {
           role: 'user',
           content: [
@@ -171,8 +191,8 @@ describe('GooseLanguageModel', () => {
           ],
         },
       ]);
-      expect(result).toContain('Part 1');
-      expect(result).toContain('Part 2');
+      expect(result.prompt).toContain('Part 1');
+      expect(result.prompt).toContain('Part 2');
     });
   });
 
@@ -222,10 +242,7 @@ describe('GooseLanguageModel', () => {
       // Abort after 100ms
       setTimeout(() => controller.abort(), 100);
 
-      // Build args manually to simulate a long-running command
-      const args = (model as any).buildCLIArgs('10'); // sleep 10 seconds
-
-      // Replace with sleep command args
+      // Use sleep command args directly
       const sleepArgs = ['10'];
 
       await expect(

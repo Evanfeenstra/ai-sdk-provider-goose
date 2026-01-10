@@ -55,8 +55,8 @@ export class GooseLanguageModel implements LanguageModelV3 {
   async doGenerate(
     options: LanguageModelV3CallOptions
   ): Promise<LanguageModelV3GenerateResult> {
-    const prompt = this.convertPromptToText(options.prompt);
-    const args = this.buildCLIArgs(prompt);
+    const { system, prompt } = this.extractPromptParts(options.prompt);
+    const args = this.buildCLIArgs(system, prompt);
 
     this.logger?.debug('Starting Goose CLI generation', {
       binPath: this.settings.binPath,
@@ -70,8 +70,8 @@ export class GooseLanguageModel implements LanguageModelV3 {
   async doStream(
     options: LanguageModelV3CallOptions
   ): Promise<LanguageModelV3StreamResult> {
-    const prompt = this.convertPromptToText(options.prompt);
-    const args = this.buildCLIArgs(prompt);
+    const { system, prompt } = this.extractPromptParts(options.prompt);
+    const args = this.buildCLIArgs(system, prompt);
 
     this.logger?.debug('Starting Goose CLI streaming', {
       binPath: this.settings.binPath,
@@ -99,8 +99,14 @@ export class GooseLanguageModel implements LanguageModelV3 {
     };
   }
 
-  private buildCLIArgs(prompt: string): string[] {
-    const args = ['run', '--output-format', 'stream-json', '-t', prompt];
+  private buildCLIArgs(system: string | undefined, prompt: string): string[] {
+    const args = ['run', '--output-format', 'stream-json'];
+
+    if (system) {
+      args.push('--system', system);
+    }
+
+    args.push('-t', prompt);
 
     if (this.settings.sessionName) {
       args.push('--name', this.settings.sessionName);
@@ -358,11 +364,12 @@ export class GooseLanguageModel implements LanguageModelV3 {
     }
   }
 
-  private convertPromptToText(
+  private extractPromptParts(
     prompt: LanguageModelV3CallOptions['prompt']
-  ): string {
+  ): { system?: string; prompt: string } {
     if (Array.isArray(prompt)) {
-      const messages: string[] = [];
+      let system: string | undefined;
+      const userMessages: string[] = [];
 
       for (const message of prompt) {
         if (!message || typeof message !== 'object') continue;
@@ -370,16 +377,16 @@ export class GooseLanguageModel implements LanguageModelV3 {
         switch (message.role) {
           case 'system':
             if (typeof message.content === 'string') {
-              messages.unshift(`System: ${message.content}`);
+              system = message.content;
             }
             break;
           case 'user':
             if (typeof message.content === 'string') {
-              messages.push(message.content);
+              userMessages.push(message.content);
             } else if (Array.isArray(message.content)) {
               for (const part of message.content) {
                 if (part.type === 'text') {
-                  messages.push(part.text);
+                  userMessages.push(part.text);
                 }
               }
             }
@@ -387,10 +394,13 @@ export class GooseLanguageModel implements LanguageModelV3 {
         }
       }
 
-      return messages.join('\n\n');
+      return {
+        system,
+        prompt: userMessages.join('\n\n'),
+      };
     }
 
-    return String(prompt);
+    return { prompt: String(prompt) };
   }
 
   private eventsToGenerateResult(
