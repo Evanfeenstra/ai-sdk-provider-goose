@@ -1,4 +1,5 @@
 import { basicExample } from './basic.js';
+import { fullStreamTest } from './fullstream.js';
 import { streamingExample } from './streaming.js';
 import { sessionExample } from './session.js';
 
@@ -9,6 +10,9 @@ async function main() {
 
   try {
     await basicExample();
+    console.log('\n' + '='.repeat(50) + '\n');
+
+    await fullStreamTest();
     console.log('\n' + '='.repeat(50) + '\n');
 
     await streamingExample();

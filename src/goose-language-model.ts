@@ -272,6 +272,10 @@ export class GooseLanguageModel implements LanguageModelV3 {
                 if (content.type === 'text' && content.text) {
                   if (!textStartEmitted) {
                     currentTextPartId = generateId();
+                    yield {
+                      type: 'text-start',
+                      id: currentTextPartId,
+                    };
                     textStartEmitted = true;
                   }
                   if (currentTextPartId) {
@@ -315,6 +319,13 @@ export class GooseLanguageModel implements LanguageModelV3 {
               }
             }
           } else if (event.type === 'complete') {
+            // Close text part if it was opened
+            if (currentTextPartId && textStartEmitted) {
+              yield {
+                type: 'text-end',
+                id: currentTextPartId,
+              };
+            }
             yield {
               type: 'finish',
               finishReason: {
