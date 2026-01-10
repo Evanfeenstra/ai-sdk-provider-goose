@@ -1,6 +1,6 @@
 {
   "name": "ai-sdk-provider-goose",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "AI SDK v5 provider for Goose CLI",
   "keywords": [
     "ai-sdk",
@@ -41,8 +41,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@ai-sdk/provider": "^3.0.1",
-    "@ai-sdk/provider-utils": "^3.0.3"
+    "@ai-sdk/provider": "^3.0.2",
+    "@ai-sdk/provider-utils": "^4.0.4"
   },
   "devDependencies": {
     "@types/node": "20.17.24",
