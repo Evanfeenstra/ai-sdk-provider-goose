@@ -4,13 +4,12 @@ import { generateText } from 'ai';
 export async function sessionExample() {
   console.log('=== Session Resumption Example ===\n');
 
-  const binPath = '/Users/evanfeenstra/code/evanf/goose/target/debug/goose';
   const sessionName = `test-session-${Date.now()}`;
 
   try {
     // First call - creates new session
     console.log('First call - creating new session with name:', sessionName);
-    const model1 = goose('goose', { binPath, sessionName });
+    const model1 = goose('goose', { sessionName });
     const result1 = await generateText({
       model: model1,
       prompt: 'My name is Alice. Remember this.',
@@ -21,7 +20,7 @@ export async function sessionExample() {
 
     // Second call - resumes session
     console.log('Second call - resuming session:', sessionName);
-    const model2 = goose('goose', { binPath, sessionName, resume: true });
+    const model2 = goose('goose', { sessionName, resume: true });
     const result2 = await generateText({
       model: model2,
       prompt: 'What is my name?',

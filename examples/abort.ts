@@ -4,8 +4,6 @@ import { generateText, streamText } from 'ai';
 export async function abortExample() {
   console.log('=== Abort Controller Example ===\n');
 
-  const binPath = '/Users/evanfeenstra/code/evanf/goose/target/debug/goose';
-
   try {
     // Example 1: Abort non-streaming generation
     console.log('Example 1: Aborting non-streaming generation after 2 seconds...');
@@ -18,7 +16,7 @@ export async function abortExample() {
     }, 2000);
 
     try {
-      const model1 = goose('goose', { binPath });
+      const model1 = goose('goose');
       await generateText({
         model: model1,
         prompt: 'Write a very long story about a robot',
@@ -42,7 +40,7 @@ export async function abortExample() {
     }, 2000);
 
     try {
-      const model2 = goose('goose', { binPath });
+      const model2 = goose('goose');
       const result = streamText({
         model: model2,
         prompt: 'Count from 1 to 100 slowly',

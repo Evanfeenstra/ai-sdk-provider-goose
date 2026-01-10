@@ -4,9 +4,7 @@ import { streamText } from 'ai';
 export async function streamingExample() {
   console.log('=== Streaming Text Generation ===\n');
 
-  const model = goose('goose', {
-    binPath: '/Users/evanfeenstra/code/evanf/goose/target/debug/goose',
-  });
+  const model = goose('goose');
 
   try {
     const result = streamText({

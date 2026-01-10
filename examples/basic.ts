@@ -4,9 +4,7 @@ import { generateText } from 'ai';
 export async function basicExample() {
   console.log('=== Basic Text Generation ===\n');
 
-  const model = goose('goose', {
-    binPath: '/Users/evanfeenstra/code/evanf/goose/target/debug/goose',
-  });
+  const model = goose('goose');
 
   try {
     const result = await generateText({
