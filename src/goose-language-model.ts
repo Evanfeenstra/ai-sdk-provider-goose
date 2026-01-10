@@ -183,7 +183,6 @@ export class GooseLanguageModel implements LanguageModelV3 {
       rl.on('line', (line) => {
         try {
           const event = JSON.parse(line) as GooseStreamEvent;
-          console.log('Received event', JSON.stringify(event, null, 2));
           events.push(event);
           this.logger?.debug('Received event', event);
         } catch (err) {
