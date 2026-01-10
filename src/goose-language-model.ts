@@ -183,6 +183,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
       rl.on('line', (line) => {
         try {
           const event = JSON.parse(line) as GooseStreamEvent;
+          console.log('Received event', JSON.stringify(event, null, 2));
           events.push(event);
           this.logger?.debug('Received event', event);
         } catch (err) {
@@ -305,7 +306,19 @@ export class GooseLanguageModel implements LanguageModelV3 {
                   const result = content.toolResult.value;
                   const resultText = Array.isArray(result.content)
                     ? result.content
-                        .map((c: any) => c.text || JSON.stringify(c))
+                        .filter((c: any) => {
+                          // Include if no audience defined, or if audience includes "user"
+                          const audience = c.annotations?.audience;
+                          return !audience || audience.includes('user');
+                        })
+                        .map((c: any) => {
+                          if (c.type === 'text' && c.text) {
+                            return c.text;
+                          } else if (c.type === 'resource' && c.resource?.text) {
+                            return c.resource.text;
+                          }
+                          return JSON.stringify(c);
+                        })
                         .join('\n')
                     : JSON.stringify(result.content);
 

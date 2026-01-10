@@ -2,6 +2,7 @@ import { basicExample } from './basic.js';
 import { fullStreamTest } from './fullstream.js';
 import { streamingExample } from './streaming.js';
 import { sessionExample } from './session.js';
+import { toolCallExample } from './tool-call.js';
 
 async function main() {
   console.log('Running Goose CLI Provider Examples\n');
@@ -19,6 +20,9 @@ async function main() {
     console.log('\n' + '='.repeat(50) + '\n');
 
     await sessionExample();
+    console.log('\n' + '='.repeat(50) + '\n');
+
+    await toolCallExample();
     console.log('\n' + '='.repeat(50) + '\n');
 
     console.log('All examples completed successfully!');
