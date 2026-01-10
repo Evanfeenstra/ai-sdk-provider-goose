@@ -2,7 +2,13 @@
   "name": "ai-sdk-provider-goose",
   "version": "0.1.0",
   "description": "AI SDK v5 provider for Goose CLI",
-  "keywords": ["ai-sdk", "goose", "cli", "language-model", "llm"],
+  "keywords": [
+    "ai-sdk",
+    "goose",
+    "cli",
+    "language-model",
+    "llm"
+  ],
   "license": "MIT",
   "author": "Evan Feenstra",
   "type": "module",
