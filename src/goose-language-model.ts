@@ -102,7 +102,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
   }
 
   private buildCLIArgs(system: string | undefined, prompt: string): string[] {
-    const args = ['run', '--output-format', 'stream-json'];
+    const args = ['run', '--with-builtin', 'developer', '--output-format', 'stream-json'];
 
     if (system) {
       args.push('--system', system);
