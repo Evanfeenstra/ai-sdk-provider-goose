@@ -48,9 +48,13 @@ async function parseBody(req) {
 
 // Serve static files
 function serveStatic(req, res) {
+  // Parse URL to handle query parameters
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const pathname = url.pathname;
+
   let filePath = path.join(
     STATIC_DIR,
-    req.url === "/" ? "index.html" : req.url
+    pathname === "/" ? "index.html" : pathname
   );
 
   // Prevent directory traversal
@@ -138,9 +142,12 @@ async function handleStream(req, res, sessionId) {
 
     // Build goose settings - provider/model/apiKey can be passed in request
     // or configured via environment variables
+    const shouldResume = resume ?? session.resume;
+    console.log(`[Stream] sessionId=${sessionId}, resume=${shouldResume}, body.resume=${resume}, session.resume=${session.resume}`);
+    
     const settings = {
       sessionName: sessionId,
-      resume: resume ?? session.resume,
+      resume: shouldResume,
       // Provider settings (optional - goose uses its own config if not set)
       provider: provider || process.env.GOOSE_PROVIDER,
       model: model || process.env.GOOSE_MODEL,

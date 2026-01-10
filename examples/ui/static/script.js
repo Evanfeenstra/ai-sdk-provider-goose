@@ -4,12 +4,14 @@ let eventSource = null;
 let sessionId = getSessionId();
 let sessionToken = null;
 let isConnected = false;
+let isFirstMessage = true;
 
 // DOM elements
 const messagesContainer = document.getElementById("messages");
 const messageInput = document.getElementById("message-input");
 const sendButton = document.getElementById("send-button");
-const connectionStatus = document.getElementById("connection-status");
+const sessionIdElement = document.getElementById("session-id");
+const newSessionButton = document.getElementById("new-session-btn");
 
 // Track if we're currently processing
 let isProcessing = false;
@@ -147,18 +149,78 @@ function removeThinkingIndicator() {
   }
 }
 
+// Update session ID in URL
+function updateUrlWithSession() {
+  const url = new URL(window.location.href);
+  url.searchParams.set("session", sessionId);
+  window.history.replaceState({}, "", url.toString());
+}
+
+// Update session display in header
+function updateSessionDisplay() {
+  sessionIdElement.textContent = sessionId;
+}
+
+// Start a new session
+function startNewSession() {
+  // Generate new session ID
+  sessionId = generateSessionId();
+  sessionToken = null;
+
+  // Update URL and display
+  updateUrlWithSession();
+  updateSessionDisplay();
+
+  // Clear messages
+  messagesContainer.innerHTML = `
+    <div class="welcome-message">
+      <h2>Welcome to goose!</h2>
+      <p>I'm your AI coding assistant. How can I help you today?</p>
+
+      <div class="suggestion-pills">
+        <div
+          class="suggestion-pill"
+          onclick="sendSuggestion('What can you do?')"
+        >
+          What can you do?
+        </div>
+        <div
+          class="suggestion-pill"
+          onclick="sendSuggestion('List files in my current directory')"
+        >
+          List files in my current directory
+        </div>
+        <div
+          class="suggestion-pill"
+          onclick="sendSuggestion('Write an asteroids game in a single HTML file')"
+        >
+          Write an asteroids game in a single HTML file
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Reset state
+  currentStreamingMessage = null;
+  isProcessing = false;
+  isFirstMessage = true;
+  resetSendButton();
+
+  // Focus input
+  messageInput.focus();
+}
+
 // Initialize connection (creates session but doesn't start streaming yet)
 async function initializeConnection() {
   try {
     // For now, just mark as ready - session created when first message sent
     isConnected = true;
-    connectionStatus.textContent = "Ready";
-    connectionStatus.className = "status connected";
+    updateSessionDisplay();
+    updateUrlWithSession();
     sendButton.disabled = false;
   } catch (error) {
     console.error("Connection initialization error:", error);
-    connectionStatus.textContent = "Error";
-    connectionStatus.className = "status disconnected";
+    sessionIdElement.textContent = "Error";
   }
 }
 
@@ -182,6 +244,10 @@ async function createSession() {
 
     const data = await response.json();
     sessionToken = data.token;
+
+    // Update URL with session ID after session is created
+    updateUrlWithSession();
+
     return data;
   } catch (error) {
     console.error("Failed to create session:", error);
@@ -420,9 +486,11 @@ async function sendMessage() {
         prompt: message,
         system: "You are a helpful AI assistant.",
         session: sessionId,
-        resume: false,
+        resume: !isFirstMessage,
       }),
     });
+    
+    console.log(`[Client] Sent message with resume=${!isFirstMessage}, isFirstMessage=${isFirstMessage}`);
 
     if (!response.ok) {
       throw new Error(`Stream request failed: ${response.status}`);
@@ -461,6 +529,9 @@ async function sendMessage() {
 
     // Stream complete
     handleFinish({ finishReason: "stop" });
+
+    // Mark that we've sent at least one message
+    isFirstMessage = false;
   } catch (error) {
     console.error("Failed to send message:", error);
     removeThinkingIndicator();
@@ -479,6 +550,7 @@ function sendSuggestion(text) {
 
 // Event listeners
 sendButton.addEventListener("click", sendMessage);
+newSessionButton.addEventListener("click", startNewSession);
 
 messageInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {

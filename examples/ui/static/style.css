@@ -146,7 +146,13 @@ header h1::before {
   filter: drop-shadow(0 0 8px var(--shadow-glow));
 }
 
-.status {
+.session-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.session-id {
   font-size: 0.7rem;
   font-weight: 500;
   color: var(--text-secondary);
@@ -156,21 +162,29 @@ header h1::before {
   border: 1px solid var(--border-color);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: "JetBrains Mono", "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+  letter-spacing: 0.02em;
 }
 
-.status.connected {
-  color: #34d399;
-  border-color: rgba(52, 211, 153, 0.3);
-  background: rgba(52, 211, 153, 0.1);
-  box-shadow: 0 0 12px rgba(52, 211, 153, 0.15);
+.new-session-btn {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  background: rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.status.disconnected {
-  color: #f87171;
-  border-color: rgba(248, 113, 113, 0.3);
-  background: rgba(248, 113, 113, 0.1);
+.new-session-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-color);
+  background: rgba(167, 139, 250, 0.2);
+  box-shadow: 0 0 12px var(--shadow-glow);
 }
 
 .chat-container {
