@@ -405,7 +405,6 @@ async function sendMessage() {
     }
 
     // Start SSE stream
-    const apiKey = "";
     const streamUrl = `${GOOSE_URL}/stream/${sessionId}?token=${encodeURIComponent(
       sessionToken
     )}`;
@@ -419,7 +418,6 @@ async function sendMessage() {
       body: JSON.stringify({
         userId: "demo-user",
         prompt: message,
-        apiKey: apiKey,
         system: "You are a helpful AI assistant.",
         session: sessionId,
         resume: false,

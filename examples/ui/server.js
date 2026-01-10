@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 import { streamText } from "ai";
-import { goose } from "../../dist/index.js";
+import { goose, PROVIDERS, MODELS } from "../../dist/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const STATIC_DIR = path.join(__dirname, "static");
@@ -120,7 +120,7 @@ async function handleStream(req, res, sessionId) {
 
   try {
     const body = await parseBody(req);
-    const { prompt, system, resume } = body;
+    const { prompt, system, resume, provider, model, apiKey, maxTurns } = body;
 
     if (!prompt) {
       res.writeHead(400, { "Content-Type": "application/json" });
@@ -136,16 +136,21 @@ async function handleStream(req, res, sessionId) {
       "Access-Control-Allow-Origin": "*",
     });
 
-    // Build env from process.env (pass through relevant vars)
-    const env = { ...process.env };
+    // Build goose settings - provider/model/apiKey can be passed in request
+    // or configured via environment variables
+    const settings = {
+      sessionName: sessionId,
+      resume: resume ?? session.resume,
+      // Provider settings (optional - goose uses its own config if not set)
+      provider: provider || process.env.GOOSE_PROVIDER,
+      model: model || process.env.GOOSE_MODEL,
+      apiKey: apiKey,
+      maxTurns: maxTurns ? Number(maxTurns) : undefined,
+    };
 
     // Stream from goose
     const result = streamText({
-      model: goose("goose", {
-        sessionName: sessionId,
-        resume: resume ?? session.resume,
-        env,
-      }),
+      model: goose("goose", settings),
       prompt,
       system,
     });

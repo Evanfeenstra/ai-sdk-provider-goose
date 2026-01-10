@@ -1,6 +1,8 @@
 # AI SDK Provider for Goose CLI
 
-A clean and simple [AI SDK](https://sdk.vercel.ai) provider for the [Goose CLI](https://github.com/block/goose) with streaming JSON output support.
+![Goose Chat UI](examples/ui/static/ui.png)
+
+An [AI SDK](https://sdk.vercel.ai) provider for the [Goose CLI](https://github.com/block/goose).
 
 ## Installation
 
@@ -30,6 +32,8 @@ const model = goose("goose", {
   timeout: 120000, // Default: 120s
   sessionName: "my-session", // Optional session name
   resume: true, // Resume previous session
+  provider: "anthropic", // Set custom provider
+  model: "claude-haiku-4-5", // Set specific model
 });
 ```
 

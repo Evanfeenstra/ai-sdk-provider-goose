@@ -3,11 +3,20 @@ import { fullStreamTest } from './fullstream.js';
 import { streamingExample } from './streaming.js';
 import { sessionExample } from './session.js';
 import { toolCallExample } from './tool-call.js';
+import { haikuExample } from './haiku.js';
 
 async function main() {
   console.log('Running Goose CLI Provider Examples\n');
   console.log('='.repeat(50));
   console.log();
+
+  // Check for specific example argument
+  const arg = process.argv[2];
+
+  if (arg === 'haiku') {
+    await haikuExample();
+    return;
+  }
 
   try {
     await basicExample();
@@ -23,6 +32,9 @@ async function main() {
     console.log('\n' + '='.repeat(50) + '\n');
 
     await toolCallExample();
+    console.log('\n' + '='.repeat(50) + '\n');
+
+    await haikuExample();
     console.log('\n' + '='.repeat(50) + '\n');
 
     console.log('All examples completed successfully!');

@@ -1,6 +1,6 @@
 {
   "name": "ai-sdk-provider-goose",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "AI SDK v6å provider for Goose CLI",
   "keywords": [
     "ai-sdk",

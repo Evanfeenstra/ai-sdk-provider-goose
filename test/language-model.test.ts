@@ -39,6 +39,8 @@ describe('GooseLanguageModel', () => {
 
       expect(args).toEqual([
         'run',
+        '--with-builtin',
+        'developer',
         '--output-format',
         'stream-json',
         '-t',
@@ -129,11 +131,71 @@ describe('GooseLanguageModel', () => {
         },
       });
 
-      const settings = (model as any).settings;
-      expect(settings.env).toEqual({
+      const computedEnv = (model as any).computedEnv;
+      expect(computedEnv).toEqual({
+        CONFIGURE: 'false',
         GOOSE_API_KEY: 'test-key',
         CUSTOM_VAR: 'value',
       });
+    });
+
+    it('should set provider env vars when provider is specified', () => {
+      const model = new GooseLanguageModel({
+        id: 'goose',
+        settings: {
+          provider: 'anthropic',
+          apiKey: 'sk-test-key',
+        },
+      });
+
+      const computedEnv = (model as any).computedEnv;
+      expect(computedEnv.GOOSE_PROVIDER).toBe('anthropic');
+      expect(computedEnv.GOOSE_MODEL).toBe('claude-sonnet-4-5'); // default model (first in array)
+      expect(computedEnv.ANTHROPIC_API_KEY).toBe('sk-test-key');
+    });
+
+    it('should use custom model when provider and model are specified', () => {
+      const model = new GooseLanguageModel({
+        id: 'goose',
+        settings: {
+          provider: 'openai',
+          model: 'gpt-4-turbo',
+          apiKey: 'sk-openai-key',
+        },
+      });
+
+      const computedEnv = (model as any).computedEnv;
+      expect(computedEnv.GOOSE_PROVIDER).toBe('openai');
+      expect(computedEnv.GOOSE_MODEL).toBe('gpt-4-turbo');
+      expect(computedEnv.OPENAI_API_KEY).toBe('sk-openai-key');
+    });
+
+    it('should set maxTurns env var when specified', () => {
+      const model = new GooseLanguageModel({
+        id: 'goose',
+        settings: {
+          maxTurns: 500,
+        },
+      });
+
+      const computedEnv = (model as any).computedEnv;
+      expect(computedEnv.GOOSE_MAX_TURNS).toBe('500');
+    });
+
+    it('should not set API key env var for ollama provider', () => {
+      const model = new GooseLanguageModel({
+        id: 'goose',
+        settings: {
+          provider: 'ollama',
+          apiKey: 'ignored-key',
+        },
+      });
+
+      const computedEnv = (model as any).computedEnv;
+      expect(computedEnv.GOOSE_PROVIDER).toBe('ollama');
+      expect(computedEnv.GOOSE_MODEL).toBe('qwen3');
+      // Ollama doesn't use an API key env var
+      expect(computedEnv.OLLAMA_API_KEY).toBeUndefined();
     });
 
     it('should order flags correctly', () => {
@@ -150,14 +212,16 @@ describe('GooseLanguageModel', () => {
 
       // Base command comes first
       expect(args[0]).toBe('run');
-      expect(args[1]).toBe('--output-format');
-      expect(args[2]).toBe('stream-json');
-      expect(args[3]).toBe('-t');
-      expect(args[4]).toBe('prompt');
+      expect(args[1]).toBe('--with-builtin');
+      expect(args[2]).toBe('developer');
+      expect(args[3]).toBe('--output-format');
+      expect(args[4]).toBe('stream-json');
+      expect(args[5]).toBe('-t');
+      expect(args[6]).toBe('prompt');
 
       // Session flags in middle
       const nameIndex = args.indexOf('--name');
-      expect(nameIndex).toBeGreaterThan(4);
+      expect(nameIndex).toBeGreaterThan(6);
       expect(args[nameIndex + 1]).toBe('session1');
       expect(args).toContain('--resume');
 

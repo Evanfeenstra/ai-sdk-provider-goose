@@ -40,7 +40,10 @@ export type {
 } from './goose-language-model.js';
 
 // Type exports
-export type { GooseSettings, Logger } from './types.js';
+export type { GooseSettings, Logger, GooseProviderName } from './types.js';
+
+// Provider/model constants
+export { PROVIDERS, MODELS, DEFAULT_MODELS, API_KEY_ENV_VARS } from './types.js';
 
 // Error utilities
 export {

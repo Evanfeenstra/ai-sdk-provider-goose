@@ -9,7 +9,8 @@ import type {
 import { spawn } from 'child_process';
 import { createInterface } from 'readline';
 import { generateId } from '@ai-sdk/provider-utils';
-import type { GooseSettings, GooseStreamEvent, Logger } from './types.js';
+import type { GooseSettings, GooseStreamEvent, Logger, GooseProviderName } from './types.js';
+import { API_KEY_ENV_VARS, DEFAULT_MODELS } from './types.js';
 import {
   createAPICallError,
   createTimeoutError,
@@ -32,13 +33,13 @@ export class GooseLanguageModel implements LanguageModelV3 {
   readonly modelId: string;
   readonly supportedUrls = {};
 
-  private settings: Required<Omit<GooseSettings, 'sessionName' | 'resume' | 'logger' | 'env'>> & {
-    sessionName?: string;
-    resume?: boolean;
-    logger?: Logger;
-    env?: Record<string, string>;
+  private settings: GooseSettings & {
+    binPath: string;
+    args: string[];
+    timeout: number;
   };
   private logger?: Logger;
+  private computedEnv?: Record<string, string>;
 
   constructor(options: GooseLanguageModelOptions) {
     this.modelId = options.id;
@@ -50,8 +51,50 @@ export class GooseLanguageModel implements LanguageModelV3 {
       resume: options.settings?.resume || false,
       logger: options.settings?.logger,
       env: options.settings?.env,
+      provider: options.settings?.provider,
+      model: options.settings?.model,
+      apiKey: options.settings?.apiKey,
+      maxTurns: options.settings?.maxTurns,
     };
     this.logger = this.settings.logger;
+    this.computedEnv = this.buildEnv();
+  }
+
+  /**
+   * Build environment variables from settings.
+   * Provider/model/apiKey/maxTurns settings are converted to appropriate env vars.
+   */
+  private buildEnv(): Record<string, string> {
+    const env: Record<string, string> = {
+      // Skip goose configure prompt - allows using goose without setup
+      CONFIGURE: 'false',
+      ...this.settings.env,
+    };
+
+    if (this.settings.provider) {
+      env.GOOSE_PROVIDER = this.settings.provider;
+
+      // Set model (use default if not specified)
+      const model = this.settings.model || DEFAULT_MODELS[this.settings.provider];
+      env.GOOSE_MODEL = model;
+
+      // Set API key if provided
+      if (this.settings.apiKey) {
+        const apiKeyEnvVar = API_KEY_ENV_VARS[this.settings.provider];
+        if (apiKeyEnvVar) {
+          env[apiKeyEnvVar] = this.settings.apiKey;
+        }
+      }
+    } else if (this.settings.model) {
+      // Model without provider - just set the model
+      env.GOOSE_MODEL = this.settings.model;
+    }
+
+    if (this.settings.maxTurns !== undefined) {
+      env.GOOSE_MAX_TURNS = String(this.settings.maxTurns);
+    }
+
+    return env;
   }
 
   async doGenerate(
@@ -136,8 +179,8 @@ export class GooseLanguageModel implements LanguageModelV3 {
       });
 
       const child = spawn(this.settings.binPath, args, {
-        env: this.settings.env
-          ? { ...process.env, ...this.settings.env }
+        env: this.computedEnv && Object.keys(this.computedEnv).length > 0
+          ? { ...process.env, ...this.computedEnv }
           : process.env,
       });
 
@@ -228,8 +271,8 @@ export class GooseLanguageModel implements LanguageModelV3 {
     abortSignal?: AbortSignal
   ): AsyncGenerator<LanguageModelV3StreamPart> {
     const child = spawn(this.settings.binPath, args, {
-      env: this.settings.env
-        ? { ...process.env, ...this.settings.env }
+      env: this.computedEnv && Object.keys(this.computedEnv).length > 0
+        ? { ...process.env, ...this.computedEnv }
         : process.env,
     });
     const rl = createInterface({ input: child.stdout });
