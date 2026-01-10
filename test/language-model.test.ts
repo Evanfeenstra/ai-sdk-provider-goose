@@ -118,6 +118,24 @@ describe('GooseLanguageModel', () => {
       expect(args).toContain('test prompt');
     });
 
+    it('should store env settings when provided', () => {
+      const model = new GooseLanguageModel({
+        id: 'goose',
+        settings: {
+          env: {
+            GOOSE_API_KEY: 'test-key',
+            CUSTOM_VAR: 'value',
+          },
+        },
+      });
+
+      const settings = (model as any).settings;
+      expect(settings.env).toEqual({
+        GOOSE_API_KEY: 'test-key',
+        CUSTOM_VAR: 'value',
+      });
+    });
+
     it('should order flags correctly', () => {
       const model = new GooseLanguageModel({
         id: 'goose',

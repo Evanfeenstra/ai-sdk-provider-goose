@@ -39,6 +39,13 @@ export interface GooseSettings {
    * @default false
    */
   resume?: boolean;
+
+  /**
+   * Environment variables to pass to the Goose CLI process.
+   * These will be merged with the current process environment.
+   * @example { GOOSE_PROVIDER: 'anthropic' }
+   */
+  env?: Record<string, string>;
 }
 
 /**

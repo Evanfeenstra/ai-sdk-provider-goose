@@ -32,10 +32,11 @@ export class GooseLanguageModel implements LanguageModelV3 {
   readonly modelId: string;
   readonly supportedUrls = {};
 
-  private settings: Required<Omit<GooseSettings, 'sessionName' | 'resume' | 'logger'>> & {
+  private settings: Required<Omit<GooseSettings, 'sessionName' | 'resume' | 'logger' | 'env'>> & {
     sessionName?: string;
     resume?: boolean;
     logger?: Logger;
+    env?: Record<string, string>;
   };
   private logger?: Logger;
 
@@ -48,6 +49,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
       sessionName: options.settings?.sessionName,
       resume: options.settings?.resume || false,
       logger: options.settings?.logger,
+      env: options.settings?.env,
     };
     this.logger = this.settings.logger;
   }
@@ -133,7 +135,11 @@ export class GooseLanguageModel implements LanguageModelV3 {
         args,
       });
 
-      const child = spawn(this.settings.binPath, args);
+      const child = spawn(this.settings.binPath, args, {
+        env: this.settings.env
+          ? { ...process.env, ...this.settings.env }
+          : process.env,
+      });
 
       const timeout = setTimeout(() => {
         child.kill();
@@ -221,7 +227,11 @@ export class GooseLanguageModel implements LanguageModelV3 {
     args: string[],
     abortSignal?: AbortSignal
   ): AsyncGenerator<LanguageModelV3StreamPart> {
-    const child = spawn(this.settings.binPath, args);
+    const child = spawn(this.settings.binPath, args, {
+      env: this.settings.env
+        ? { ...process.env, ...this.settings.env }
+        : process.env,
+    });
     const rl = createInterface({ input: child.stdout });
 
     let stderr = '';
