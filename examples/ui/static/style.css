@@ -528,6 +528,17 @@ header h1::before {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.tool-content code,
+.tool-result code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: block;
 }
 
 .tool-param {
