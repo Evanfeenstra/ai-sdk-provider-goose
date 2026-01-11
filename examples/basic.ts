@@ -23,7 +23,3 @@ export async function basicExample() {
     throw error;
   }
 }
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  basicExample().catch(console.error);
-}

@@ -25,13 +25,13 @@ test/                   # Vitest unit tests
 
 ## Key Types
 
-**GooseProviderSettings** - Provider-level configuration (passed to `createGoose`):
+**GooseProviderSettings** - Provider-level configuration (passed to `createGoose`), extends `GooseModelSettings`:
 
 - `binPath` - Path to goose binary (default: `'goose'`)
-- `timeout` - Request timeout in ms (default: `120000`)
+- `timeout` - Request timeout in ms (default: `600000`)
 - `args` - Additional CLI arguments
 - `logger` - Optional debug logger
-- `defaultSettings` - Default model settings applied to all calls
+- Plus all `GooseModelSettings` fields as defaults for all models
 
 **GooseModelSettings** - Model-level configuration (passed per-model call):
 
@@ -82,9 +82,7 @@ import { createGoose } from "ai-sdk-provider-goose";
 const customGoose = createGoose({
   binPath: "/custom/path/goose",
   timeout: 60000,
-  defaultSettings: {
-    maxTurns: 100,
-  },
+  maxTurns: 100,
 });
 
 const model = customGoose("google/gemini-2.5-pro");

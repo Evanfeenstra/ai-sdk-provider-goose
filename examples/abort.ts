@@ -59,7 +59,3 @@ export async function abortExample() {
     throw error;
   }
 }
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  abortExample().catch(console.error);
-}

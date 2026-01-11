@@ -20,10 +20,8 @@ describe('GooseProvider', () => {
 
     it('should create a provider with default model settings', () => {
       const provider = createGoose({
-        defaultSettings: {
-          maxTurns: 500,
-          sessionName: 'default-session',
-        },
+        maxTurns: 500,
+        sessionName: 'default-session',
       });
       expect(provider).toBeDefined();
     });
@@ -74,9 +72,7 @@ describe('GooseProvider', () => {
       const provider = createGoose({
         binPath: '/provider/path',
         timeout: 30000,
-        defaultSettings: {
-          maxTurns: 500,
-        },
+        maxTurns: 500,
       });
 
       const model = provider('anthropic/claude-sonnet-4-5', {

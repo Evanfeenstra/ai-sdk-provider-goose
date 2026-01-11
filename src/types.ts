@@ -73,9 +73,9 @@ export type GooseModelShortcut = keyof typeof GooseModels;
 
 /**
  * Provider-level settings for configuring the Goose provider.
- * These are applied to all model instances created by the provider.
+ * Extends GooseModelSettings - all model settings can be set as defaults here.
  */
-export interface GooseProviderSettings {
+export interface GooseProviderSettings extends GooseModelSettings {
   /**
    * Path to the Goose binary.
    * @default 'goose'
@@ -84,7 +84,7 @@ export interface GooseProviderSettings {
 
   /**
    * Timeout for the entire request in milliseconds.
-   * @default 120000 (2 minutes)
+   * @default 600000 (10 minutes)
    */
   timeout?: number;
 
@@ -98,11 +98,6 @@ export interface GooseProviderSettings {
    * Logger instance for debugging.
    */
   logger?: Logger;
-
-  /**
-   * Default settings applied to all model calls.
-   */
-  defaultSettings?: GooseModelSettings;
 }
 
 /**
@@ -179,6 +174,8 @@ export interface GooseStreamEvent {
   message?: GooseMessage;
   extension_id?: string;
   log?: { message: string };
+  input_tokens?: number;
+  output_tokens?: number;
   total_tokens?: number;
   error?: string;
 }

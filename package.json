@@ -1,6 +1,6 @@
 {
   "name": "ai-sdk-provider-goose",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "AI SDK v6å provider for Goose CLI",
   "keywords": [
     "ai-sdk",
@@ -37,6 +37,7 @@
     "prepublishOnly": "npm run clean && npm run build",
     "typecheck": "tsc --noEmit",
     "example": "npm run build && npx tsx examples/runner.ts",
+    "example:list": "npx tsx examples/runner.ts --help",
     "test": "vitest run",
     "test:watch": "vitest",
     "ui": "npm run build && node examples/ui/server.js"

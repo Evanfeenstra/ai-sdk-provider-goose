@@ -116,9 +116,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
     // If modelId is 'goose' or doesn't match format, use local goose config
     // (don't set GOOSE_PROVIDER or GOOSE_MODEL)
 
-    if (this.settings.maxTurns !== undefined) {
-      env.GOOSE_MAX_TURNS = String(this.settings.maxTurns);
-    }
+    env.GOOSE_MAX_TURNS = String(this.settings.maxTurns) || '1000';
 
     return env;
   }
@@ -398,14 +396,14 @@ export class GooseLanguageModel implements LanguageModelV3 {
               },
               usage: {
                 inputTokens: {
-                  total: 0,
+                  total: event.input_tokens || 0,
                   noCache: undefined,
                   cacheRead: undefined,
                   cacheWrite: undefined,
                 },
                 outputTokens: {
-                  total: event.total_tokens || 0,
-                  text: event.total_tokens || 0,
+                  total: event.output_tokens || 0,
+                  text: event.output_tokens || 0,
                   reasoning: undefined,
                 },
               },

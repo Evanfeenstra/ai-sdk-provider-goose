@@ -17,7 +17,7 @@ import { goose } from "ai-sdk-provider-goose";
 import { generateText } from "ai";
 
 const result = await generateText({
-  model: goose("goose"),
+  model: goose("goose"), // uses your locally configured goose
   prompt: "What is 2+2?",
 });
 
@@ -26,15 +26,29 @@ console.log(result.text);
 
 ## Configuration
 
+### Model Settings
+
 ```typescript
-const model = goose("goose", {
-  binPath: "/path/to/goose", // Default: 'goose'
-  timeout: 120000, // Default: 120s
+// Use provider/model format
+const model = goose("anthropic/claude-sonnet-4-5", {
   sessionName: "my-session", // Optional session name
   resume: true, // Resume previous session
-  provider: "anthropic", // Set custom provider
-  model: "claude-haiku-4-5", // Set specific model
+  maxTurns: 500, // Max turns without user input
 });
+```
+
+### Custom Provider Instance
+
+```typescript
+import { createGoose } from "ai-sdk-provider-goose";
+
+const customGoose = createGoose({
+  binPath: "/path/to/goose", // Default: 'goose'
+  timeout: 600000, // Default: 600000ms
+  maxTurns: 100, // Default for all models
+});
+
+const model = customGoose("openai/gpt-4o");
 ```
 
 ### UI

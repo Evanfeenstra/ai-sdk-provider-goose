@@ -25,7 +25,3 @@ export async function streamingExample() {
     throw error;
   }
 }
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  streamingExample().catch(console.error);
-}

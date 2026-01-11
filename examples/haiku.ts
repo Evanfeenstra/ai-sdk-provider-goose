@@ -31,7 +31,3 @@ export async function haikuExample() {
     throw error;
   }
 }
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  haikuExample().catch(console.error);
-}

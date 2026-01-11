@@ -52,7 +52,7 @@ export interface GooseProvider extends ProviderV3 {
 /**
  * Creates a Goose provider with the specified settings.
  *
- * @param settings Provider-level settings
+ * @param settings Provider-level settings (also serves as defaults for all models)
  * @returns Goose provider instance
  *
  * @example
@@ -63,9 +63,7 @@ export interface GooseProvider extends ProviderV3 {
  * const provider = createGoose({
  *   binPath: '/path/to/goose',
  *   timeout: 60000,
- *   defaultSettings: {
- *     maxTurns: 500,
- *   },
+ *   maxTurns: 500,
  * });
  *
  * // Use provider/model format
@@ -75,6 +73,14 @@ export interface GooseProvider extends ProviderV3 {
 export function createGoose(
   settings: GooseProviderSettings = {}
 ): GooseProvider {
+  const {
+    binPath = 'goose',
+    timeout = 600000,
+    args = [],
+    logger,
+    ...defaultModelSettings
+  } = settings;
+
   const createModel = (
     modelId: GooseModelId,
     modelSettings?: GooseModelSettings
@@ -86,19 +92,14 @@ export function createGoose(
       });
     }
 
-    // Merge provider defaults with model-specific settings
-    const mergedModelSettings: GooseModelSettings = {
-      ...settings.defaultSettings,
-      ...modelSettings,
-    };
-
-    // Build internal settings combining provider and model settings
+    // Build internal settings: provider defaults merged with model-specific settings
     const internalSettings: GooseInternalSettings = {
-      binPath: settings.binPath || 'goose',
-      timeout: settings.timeout || 120000,
-      args: settings.args || [],
-      logger: settings.logger,
-      ...mergedModelSettings,
+      binPath,
+      timeout,
+      args,
+      logger,
+      ...defaultModelSettings,
+      ...modelSettings,
     };
 
     return new GooseLanguageModel({

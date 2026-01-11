@@ -34,7 +34,3 @@ export async function sessionExample() {
     throw error;
   }
 }
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  sessionExample().catch(console.error);
-}

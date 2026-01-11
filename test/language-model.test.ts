@@ -6,7 +6,7 @@ import type { GooseInternalSettings } from '../src/types.js';
 function createSettings(overrides: Partial<GooseInternalSettings> = {}): GooseInternalSettings {
   return {
     binPath: 'goose',
-    timeout: 120000,
+    timeout: 600000,
     args: [],
     ...overrides,
   };
