@@ -21,6 +21,7 @@ import {
   createTimeoutError,
   createProcessError,
 } from './errors.js';
+import { extractToolResultText } from './convert.js';
 
 /**
  * Model ID - either 'goose' (use local config), or 'providerID/modelID' format.
@@ -370,24 +371,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
             } else if (msg.role === 'user') {
               for (const content of msg.content) {
                 if (content.type === 'toolResponse' && content.toolResult) {
-                  const result = content.toolResult.value;
-                  const resultText = Array.isArray(result.content)
-                    ? result.content
-                        .filter((c: any) => {
-                          // Include if no audience defined, or if audience includes "user"
-                          const audience = c.annotations?.audience;
-                          return !audience || audience.includes('user');
-                        })
-                        .map((c: any) => {
-                          if (c.type === 'text' && c.text) {
-                            return c.text;
-                          } else if (c.type === 'resource' && c.resource?.text) {
-                            return c.resource.text;
-                          }
-                          return JSON.stringify(c);
-                        })
-                        .join('\n')
-                    : JSON.stringify(result.content);
+                  const resultText = extractToolResultText(content.toolResult.value.content, 'user');
 
                   yield {
                     type: 'tool-result',

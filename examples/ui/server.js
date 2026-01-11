@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 import { streamText } from "ai";
-import { goose } from "../../dist/index.js";
+import { goose, exportSession } from "../../dist/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const STATIC_DIR = path.join(__dirname, "static");
@@ -82,6 +82,25 @@ function serveStatic(req, res) {
     res.writeHead(200, { "Content-Type": contentType });
     res.end(data);
   });
+}
+
+// Handle GET /session/:id - export session history
+function handleGetSession(req, res, sessionId) {
+  try {
+    const messages = exportSession(sessionId);
+    res.writeHead(200, {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    });
+    res.end(JSON.stringify({ messages }));
+  } catch (error) {
+    // Session doesn't exist yet, return empty messages
+    res.writeHead(200, {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    });
+    res.end(JSON.stringify({ messages: [] }));
+  }
 }
 
 // Handle POST /session - create a new session
@@ -200,6 +219,12 @@ const server = http.createServer(async (req, res) => {
   // API routes
   if (pathname === "/session" && req.method === "POST") {
     return handleCreateSession(req, res);
+  }
+
+  // GET /session/:id - export session history
+  const sessionMatch = pathname.match(/^\/session\/([^/]+)$/);
+  if (sessionMatch && req.method === "GET") {
+    return handleGetSession(req, res, sessionMatch[1]);
   }
 
   const streamMatch = pathname.match(/^\/stream\/([^/]+)$/);

@@ -65,3 +65,6 @@ export {
   createProcessError,
 } from './errors.js';
 export type { GooseErrorMetadata } from './errors.js';
+
+// Session utilities
+export { exportSession, exportSessionRaw } from './session.js';

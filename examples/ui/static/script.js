@@ -210,6 +210,113 @@ function startNewSession() {
   messageInput.focus();
 }
 
+// Load session history from server
+async function loadSessionHistory() {
+  try {
+    const response = await fetch(`${GOOSE_URL}/session/${sessionId}`);
+    if (!response.ok) {
+      console.log("No existing session found");
+      return;
+    }
+
+    const data = await response.json();
+    if (!data.messages || data.messages.length === 0) {
+      console.log("Session is empty");
+      return;
+    }
+
+    // Remove welcome message
+    const welcomeMessage = messagesContainer.querySelector(".welcome-message");
+    if (welcomeMessage) {
+      welcomeMessage.remove();
+    }
+
+    // Render each message from history
+    for (const message of data.messages) {
+      renderHistoryMessage(message);
+    }
+
+    // Mark that we have history, so next message should resume
+    isFirstMessage = false;
+
+    // Scroll to bottom
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  } catch (error) {
+    console.log("Could not load session history:", error.message);
+  }
+}
+
+// Render a message from session history (AI SDK ModelMessage format)
+function renderHistoryMessage(message) {
+  const timestamp = Date.now();
+
+  // Handle different AI SDK message roles
+  if (message.role === "assistant") {
+    // AssistantModelMessage - content can be string or array of parts
+    const content = message.content;
+    
+    if (typeof content === "string") {
+      addMessage(content, "assistant", timestamp);
+    } else if (Array.isArray(content)) {
+      for (const part of content) {
+        if (part.type === "text" && part.text) {
+          addMessage(part.text, "assistant", timestamp);
+        } else if (part.type === "tool-call") {
+          // Render tool call
+          const toolDiv = document.createElement("div");
+          toolDiv.className = "message assistant tool-message";
+
+          const headerDiv = document.createElement("div");
+          headerDiv.className = "tool-header";
+          headerDiv.innerHTML = `🔧 <strong>${part.toolName}</strong>`;
+
+          const contentDiv = document.createElement("div");
+          contentDiv.className = "tool-content";
+          contentDiv.innerHTML = `<pre><code>${JSON.stringify(
+            part.input,
+            null,
+            2
+          )}</code></pre>`;
+
+          toolDiv.appendChild(headerDiv);
+          toolDiv.appendChild(contentDiv);
+          messagesContainer.appendChild(toolDiv);
+        }
+      }
+    }
+  } else if (message.role === "user") {
+    // UserModelMessage - content can be string or array of parts
+    const content = message.content;
+    
+    if (typeof content === "string") {
+      addMessage(content, "user", timestamp);
+    } else if (Array.isArray(content)) {
+      const textParts = content
+        .filter((p) => p.type === "text")
+        .map((p) => p.text)
+        .join("\n");
+      if (textParts) {
+        addMessage(textParts, "user", timestamp);
+      }
+    }
+  } else if (message.role === "tool") {
+    // ToolModelMessage - contains tool results
+    for (const part of message.content) {
+      if (part.type === "tool-result") {
+        const resultDiv = document.createElement("div");
+        resultDiv.className = "message tool-result";
+        const output = part.output;
+        const formattedOutput = 
+          output?.type === "text" ? output.value :
+          typeof output === "string" ? output :
+          JSON.stringify(output, null, 2);
+        resultDiv.innerHTML = `<pre>${escapeHtml(formattedOutput)}</pre>`;
+        messagesContainer.appendChild(resultDiv);
+      }
+    }
+  }
+}
+
 // Initialize connection (creates session but doesn't start streaming yet)
 async function initializeConnection() {
   try {
@@ -218,6 +325,9 @@ async function initializeConnection() {
     updateSessionDisplay();
     updateUrlWithSession();
     sendButton.disabled = false;
+
+    // Try to load existing session history
+    await loadSessionHistory();
   } catch (error) {
     console.error("Connection initialization error:", error);
     sessionIdElement.textContent = "Error";
