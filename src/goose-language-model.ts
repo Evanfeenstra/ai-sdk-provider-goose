@@ -97,6 +97,8 @@ export class GooseLanguageModel implements LanguageModelV3 {
     const env: Record<string, string> = {
       // Skip goose configure prompt - allows using goose without setup
       CONFIGURE: 'false',
+      GOOSE_MODE: 'auto',
+      GOOSE_CONTEXT_STRATEGY: "summarize",
       ...this.settings.env,
     };
 
@@ -362,6 +364,9 @@ export class GooseLanguageModel implements LanguageModelV3 {
                       toolCallId: content.id || generateId(),
                       toolName: content.toolCall.value.name,
                       input: JSON.stringify(content.toolCall.value.arguments),
+                      // Mark as provider-executed so AI SDK doesn't try to execute it
+                      providerExecuted: true,
+                      dynamic: true,
                     };
                   }
                 }
@@ -376,6 +381,8 @@ export class GooseLanguageModel implements LanguageModelV3 {
                     toolCallId: content.id || generateId(),
                     toolName: 'unknown',
                     result: resultText,
+                    // Mark as dynamic (provider-executed) so AI SDK knows this is informational
+                    dynamic: true,
                   };
                 }
               }
