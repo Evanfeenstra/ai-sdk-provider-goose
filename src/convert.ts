@@ -96,168 +96,246 @@ export interface GooseMessage {
 
 /**
  * Checks if a content item should be visible to the specified audience.
+ * Defensive: handles missing/malformed annotations gracefully.
  */
-export function shouldIncludeForAudience(item: { annotations?: ContentAnnotations }, audience: Audience): boolean {
-  if (!item.annotations?.audience) {
+export function shouldIncludeForAudience(item: { annotations?: ContentAnnotations } | null | undefined, audience: Audience): boolean {
+  try {
+    if (!item?.annotations?.audience || !Array.isArray(item.annotations.audience)) {
+      return true;
+    }
+    return item.annotations.audience.includes(audience);
+  } catch {
     return true;
   }
-  return item.annotations.audience.includes(audience);
 }
 
 /**
  * Extracts text from a Goose tool result content array.
+ * Defensive: handles undefined/null/non-array content gracefully.
  */
 export function extractToolResultText(
-  content: GooseToolResult['value']['content'],
+  content: GooseToolResult['value']['content'] | undefined | null,
   audience: Audience
 ): string {
+  if (!content || !Array.isArray(content)) {
+    return '';
+  }
+  
   return content
-    .filter((c) => shouldIncludeForAudience(c, audience))
+    .filter((c) => c && typeof c === 'object' && shouldIncludeForAudience(c, audience))
     .map((c) => {
-      if (c.type === 'text' && c.text) {
-        return c.text;
-      } else if (c.type === 'resource' && c.resource?.text) {
-        return c.resource.text;
+      try {
+        if (c.type === 'text' && c.text) {
+          return c.text;
+        } else if (c.type === 'resource' && c.resource?.text) {
+          return c.resource.text;
+        }
+        return JSON.stringify(c);
+      } catch {
+        return '';
       }
-      return JSON.stringify(c);
     })
     .join('\n');
 }
 
 /**
  * Converts a Goose text content item to an AI SDK TextPart.
+ * Defensive: handles missing text gracefully.
  */
 function convertTextContent(content: GooseTextContent): TextPart {
   return {
     type: 'text',
-    text: content.text,
+    text: content?.text ?? '',
   };
 }
 
 /**
  * Converts a Goose tool request to an AI SDK ToolCallPart.
+ * Defensive: handles missing/malformed toolCall gracefully.
  */
-function convertToolRequest(content: GooseToolRequestContent): ToolCallPart {
-  return {
-    type: 'tool-call',
-    toolCallId: content.id || generateId(),
-    toolName: content.toolCall.value.name,
-    input: content.toolCall.value.arguments,
-  };
+function convertToolRequest(content: GooseToolRequestContent): ToolCallPart | null {
+  try {
+    return {
+      type: 'tool-call',
+      toolCallId: content?.id || generateId(),
+      toolName: content?.toolCall?.value?.name ?? 'unknown',
+      input: content?.toolCall?.value?.arguments ?? {},
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
  * Converts a Goose tool response to an AI SDK ToolResultPart.
+ * Defensive: handles missing/malformed toolResult gracefully.
  */
-function convertToolResponse(content: GooseToolResponseContent, audience: Audience): ToolResultPart {
-  const resultText = extractToolResultText(content.toolResult.value.content, audience);
-  
-  return {
-    type: 'tool-result',
-    toolCallId: content.id || generateId(),
-    toolName: 'unknown', // Goose doesn't include tool name in response
-    output: {
-      type: 'text',
-      value: resultText,
-    },
-  };
+function convertToolResponse(content: GooseToolResponseContent, audience: Audience): ToolResultPart | null {
+  try {
+    const resultText = extractToolResultText(content?.toolResult?.value?.content, audience);
+    
+    return {
+      type: 'tool-result',
+      toolCallId: content?.id || generateId(),
+      toolName: 'unknown', // Goose doesn't include tool name in response
+      output: {
+        type: 'text',
+        value: resultText,
+      },
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
  * Converts a Goose assistant message to an AI SDK AssistantModelMessage.
+ * Defensive: handles missing/malformed message content gracefully.
  */
 function convertAssistantMessage(message: GooseMessage, audience: Audience): AssistantModelMessage | null {
-  const content: (TextPart | ToolCallPart)[] = [];
+  try {
+    const content: (TextPart | ToolCallPart)[] = [];
 
-  for (const item of message.content) {
-    if (!shouldIncludeForAudience(item, audience)) {
-      continue;
+    if (!message?.content || !Array.isArray(message.content)) {
+      return null;
     }
 
-    if (item.type === 'text' && 'text' in item && item.text) {
-      content.push(convertTextContent(item as GooseTextContent));
-    } else if (item.type === 'toolRequest' && 'toolCall' in item) {
-      content.push(convertToolRequest(item as GooseToolRequestContent));
-    }
-  }
+    for (const item of message.content) {
+      if (!item || typeof item !== 'object') {
+        continue;
+      }
+      
+      if (!shouldIncludeForAudience(item, audience)) {
+        continue;
+      }
 
-  if (content.length === 0) {
+      if (item.type === 'text' && 'text' in item && item.text) {
+        content.push(convertTextContent(item as GooseTextContent));
+      } else if (item.type === 'toolRequest' && 'toolCall' in item) {
+        const toolCall = convertToolRequest(item as GooseToolRequestContent);
+        if (toolCall) {
+          content.push(toolCall);
+        }
+      }
+    }
+
+    if (content.length === 0) {
+      return null;
+    }
+
+    return {
+      role: 'assistant',
+      content,
+    };
+  } catch {
     return null;
   }
-
-  return {
-    role: 'assistant',
-    content,
-  };
 }
 
 /**
  * Converts a Goose user message to AI SDK messages.
  * User messages in Goose can contain tool responses, which become ToolModelMessage in AI SDK,
  * or text content which becomes UserModelMessage.
+ * Defensive: handles missing/malformed message content gracefully.
  */
 function convertUserMessage(message: GooseMessage, audience: Audience): ModelMessage[] {
-  const messages: ModelMessage[] = [];
-  const textParts: TextPart[] = [];
-  const toolResults: ToolResultPart[] = [];
+  try {
+    const messages: ModelMessage[] = [];
+    const textParts: TextPart[] = [];
+    const toolResults: ToolResultPart[] = [];
 
-  for (const item of message.content) {
-    if (!shouldIncludeForAudience(item, audience)) {
-      continue;
+    if (!message?.content || !Array.isArray(message.content)) {
+      return [];
     }
 
-    if (item.type === 'text' && 'text' in item && item.text) {
-      textParts.push(convertTextContent(item as GooseTextContent));
-    } else if (item.type === 'toolResponse' && 'toolResult' in item) {
-      toolResults.push(convertToolResponse(item as GooseToolResponseContent, audience));
+    for (const item of message.content) {
+      if (!item || typeof item !== 'object') {
+        continue;
+      }
+      
+      if (!shouldIncludeForAudience(item, audience)) {
+        continue;
+      }
+
+      if (item.type === 'text' && 'text' in item && item.text) {
+        textParts.push(convertTextContent(item as GooseTextContent));
+      } else if (item.type === 'toolResponse' && 'toolResult' in item) {
+        const result = convertToolResponse(item as GooseToolResponseContent, audience);
+        if (result) {
+          toolResults.push(result);
+        }
+      }
     }
-  }
 
-  // Add text content as UserModelMessage
-  if (textParts.length > 0) {
-    const userMessage: UserModelMessage = {
-      role: 'user',
-      content: textParts,
-    };
-    messages.push(userMessage);
-  }
+    // Add text content as UserModelMessage
+    if (textParts.length > 0) {
+      const userMessage: UserModelMessage = {
+        role: 'user',
+        content: textParts,
+      };
+      messages.push(userMessage);
+    }
 
-  // Add tool results as ToolModelMessage
-  if (toolResults.length > 0) {
-    const toolMessage: ToolModelMessage = {
-      role: 'tool',
-      content: toolResults,
-    };
-    messages.push(toolMessage);
-  }
+    // Add tool results as ToolModelMessage
+    if (toolResults.length > 0) {
+      const toolMessage: ToolModelMessage = {
+        role: 'tool',
+        content: toolResults,
+      };
+      messages.push(toolMessage);
+    }
 
-  return messages;
+    return messages;
+  } catch {
+    return [];
+  }
 }
 
 /**
  * Converts a single Goose message to AI SDK ModelMessage(s).
  * May return multiple messages since Goose combines tool results with user messages.
+ * Defensive: handles missing/malformed messages gracefully.
  */
 export function convertGooseMessage(message: GooseMessage, audience: Audience): ModelMessage[] {
-  if (message.role === 'assistant') {
-    const converted = convertAssistantMessage(message, audience);
-    return converted ? [converted] : [];
-  } else {
-    return convertUserMessage(message, audience);
+  try {
+    if (!message || typeof message !== 'object') {
+      return [];
+    }
+    
+    if (message.role === 'assistant') {
+      const converted = convertAssistantMessage(message, audience);
+      return converted ? [converted] : [];
+    } else if (message.role === 'user') {
+      return convertUserMessage(message, audience);
+    }
+    
+    // Unknown role, skip
+    return [];
+  } catch {
+    return [];
   }
 }
 
 /**
  * Converts an array of Goose messages to AI SDK ModelMessage format.
  * Filters content by audience and removes empty messages.
+ * Defensive: handles missing/malformed messages array gracefully.
  */
 export function convertGooseMessages(messages: GooseMessage[], audience: Audience): ModelMessage[] {
-  const result: ModelMessage[] = [];
+  try {
+    if (!messages || !Array.isArray(messages)) {
+      return [];
+    }
+    
+    const result: ModelMessage[] = [];
 
-  for (const message of messages) {
-    const converted = convertGooseMessage(message, audience);
-    result.push(...converted);
+    for (const message of messages) {
+      const converted = convertGooseMessage(message, audience);
+      result.push(...converted);
+    }
+
+    return result;
+  } catch {
+    return [];
   }
-
-  return result;
 }

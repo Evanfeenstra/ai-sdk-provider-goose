@@ -29,9 +29,9 @@ export function exportSession(name: string, audience: Audience = 'user'): ModelM
     encoding: 'utf-8',
   });
 
-  const session = JSON.parse(stdout) as { conversation: GooseMessage[] };
+  const session = JSON.parse(stdout) as { conversation?: GooseMessage[] };
 
-  return convertGooseMessages(session.conversation, audience);
+  return convertGooseMessages(session?.conversation ?? [], audience);
 }
 
 /**
@@ -47,8 +47,8 @@ export function exportSessionRaw(name: string): GooseMessage[] {
     encoding: 'utf-8',
   });
 
-  const session = JSON.parse(stdout) as { conversation: GooseMessage[] };
-  return session.conversation;
+  const session = JSON.parse(stdout) as { conversation?: GooseMessage[] };
+  return session?.conversation ?? [];
 }
 
 function sanitizeShellArg(arg: string): string {
