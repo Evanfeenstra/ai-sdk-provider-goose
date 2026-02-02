@@ -4,8 +4,8 @@ import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Examples to exclude from "run all" (e.g., destructive or long-running)
-const EXCLUDE_FROM_ALL = ['abort'];
+// Examples to exclude from "run all"
+const EXCLUDE_FROM_ALL = ['abort', 'openrouter'];
 
 interface ExampleModule {
   [key: string]: () => Promise<void>;

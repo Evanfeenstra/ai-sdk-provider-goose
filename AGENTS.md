@@ -7,10 +7,11 @@ AI SDK v6 provider that wraps the Goose CLI, enabling use of Goose through stand
 ```
 src/
   index.ts              # Main exports
-  goose-provider.ts     # Provider factory (createGoose, goose)
+  goose-provider.ts     # AI SDK Provider factory (createGoose, goose)
   goose-language-model.ts # Core LanguageModelV3 implementation
   types.ts              # GooseProviderSettings, GooseModelSettings, GooseModels, etc.
   errors.ts             # Error utilities (APICallError wrappers)
+  vendor.ts             # LLM model selection
 
 examples/               # Usage examples (basic, streaming, tool-call, session)
 test/                   # Vitest unit tests
@@ -95,6 +96,7 @@ const model = customGoose('google/gemini-2.5-pro');
 - `google` - Gemini models (gemini-2.5-pro, gemini-2.5-flash, etc.)
 - `xai` - Grok models (grok-3, grok-3-fast, grok-3-mini, etc.)
 - `ollama` - Local models (qwen3, llama3.2, mistral, codellama, etc.)
+- `openrouter`
 
 ## Commands
 

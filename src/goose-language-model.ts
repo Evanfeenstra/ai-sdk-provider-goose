@@ -53,7 +53,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
    * If modelId is 'goose', uses locally configured goose (no env vars set).
    * If modelId is 'providerID/modelID', sets GOOSE_PROVIDER and GOOSE_MODEL.
    */
-  private buildEnv(): Record<string, string> {
+  buildEnv(): Record<string, string> {
     let env: Record<string, string> = {
       // Skip goose configure prompt - allows using goose without setup
       CONFIGURE: 'false',
@@ -63,7 +63,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
     };
 
     const vendorEnv = providerEnv(this.modelId, this.settings.apiKey);
-    console.log('======> vendorEnv', vendorEnv);
+    // console.log('======> vendorEnv', vendorEnv);
     if (vendorEnv) {
       env = { ...env, ...vendorEnv };
     }
