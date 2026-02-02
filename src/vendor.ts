@@ -34,6 +34,7 @@ export const GooseModels = {
   'o4-mini': 'openai/o4-mini',
   'gpt-4-turbo': 'openai/gpt-4-turbo',
   'gpt-3.5-turbo': 'openai/gpt-3.5-turbo',
+  'gpt-5.1-codex': 'openai/gpt-5.1-codex',
 
   // Google Gemini
   'gemini-2.5-pro': 'google/gemini-2.5-pro',
