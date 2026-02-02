@@ -5,7 +5,7 @@ import { dirname, join } from 'path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Examples to exclude from "run all"
-const EXCLUDE_FROM_ALL = ['abort', 'openrouter'];
+const EXCLUDE_FROM_ALL = ['abort', 'openrouter', 'gpt'];
 
 interface ExampleModule {
   [key: string]: () => Promise<void>;
