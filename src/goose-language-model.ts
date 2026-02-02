@@ -15,13 +15,14 @@ import type {
   Logger,
   GooseProviderName,
 } from './types.js';
-import { API_KEY_ENV_VARS, PROVIDERS } from './types.js';
+import { API_KEY_ENV_VARS } from './types.js';
 import {
   createAPICallError,
   createTimeoutError,
   createProcessError,
 } from './errors.js';
 import { extractToolResultText } from './convert.js';
+import { parseModelId } from './goose-provider.js';
 
 /**
  * Model ID - either 'goose' (use local config), or 'providerID/modelID' format.
@@ -33,29 +34,6 @@ export type GooseModelId = 'goose' | `${GooseProviderName}/${string}` | (string 
 export interface GooseLanguageModelOptions {
   modelId: GooseModelId;
   settings: GooseInternalSettings;
-}
-
-/**
- * Parse a model ID in the format 'providerID/modelID'.
- * Returns the provider and model name, or null if not in that format.
- */
-function parseModelId(modelId: string): { provider: GooseProviderName; model: string } | null {
-  const slashIndex = modelId.indexOf('/');
-  if (slashIndex === -1) {
-    return null;
-  }
-
-  const providerName = modelId.slice(0, slashIndex);
-  const modelName = modelId.slice(slashIndex + 1);
-
-  if (providerName in PROVIDERS && modelName) {
-    return {
-      provider: providerName as GooseProviderName,
-      model: modelName,
-    };
-  }
-
-  return null;
 }
 
 /**

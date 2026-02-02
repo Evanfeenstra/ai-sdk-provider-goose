@@ -8,7 +8,9 @@ import type {
   GooseProviderSettings,
   GooseModelSettings,
   GooseInternalSettings,
+  GooseProviderName,
 } from './types.js';
+import { PROVIDERS } from './types.js';
 
 /**
  * Goose provider interface extending AI SDK ProviderV3.
@@ -47,6 +49,34 @@ export interface GooseProvider extends ProviderV3 {
    * Image models are not supported.
    */
   imageModel(modelId: string): never;
+}
+
+/**
+ * Parse a model ID in the format 'providerID/modelID' or 'providerID/org/modelID'.
+ * Returns the provider and model name, or null if not in that format.
+ * 
+ * Handles multi-part models like OpenRouter: 'openrouter/moonshotai/kimi-k2.5'
+ * where the model part includes the organization.
+ */
+export function parseModelId(modelId: string): { provider: GooseProviderName; model: string } | null {
+  const slashIndex = modelId.indexOf('/');
+  if (slashIndex === -1) {
+    return null;
+  }
+
+  const providerName = modelId.slice(0, slashIndex);
+  // Everything after the first slash is the model ID
+  // This handles formats like 'anthropic/claude-sonnet-4-5' and 'openrouter/moonshotai/kimi-k2.5'
+  const modelName = modelId.slice(slashIndex + 1);
+
+  if (providerName in PROVIDERS && modelName) {
+    return {
+      provider: providerName as GooseProviderName,
+      model: modelName,
+    };
+  }
+
+  return null;
 }
 
 /**
