@@ -9,19 +9,10 @@ import type {
 import { spawn } from 'child_process';
 import { createInterface } from 'readline';
 import { generateId } from '@ai-sdk/provider-utils';
-import type {
-  GooseInternalSettings,
-  GooseStreamEvent,
-  Logger,
-  GooseProviderName,
-} from './types.js';
-import { API_KEY_ENV_VARS, PROVIDERS } from './types.js';
-import {
-  createAPICallError,
-  createTimeoutError,
-  createProcessError,
-} from './errors.js';
+import type { GooseInternalSettings, GooseStreamEvent, Logger } from './types.js';
+import { createAPICallError, createTimeoutError, createProcessError } from './errors.js';
 import { extractToolResultText } from './convert.js';
+import { providerEnv, type GooseProviderName } from './vendor.js';
 
 /**
  * Model ID - either 'goose' (use local config), or 'providerID/modelID' format.
@@ -33,29 +24,6 @@ export type GooseModelId = 'goose' | `${GooseProviderName}/${string}` | (string 
 export interface GooseLanguageModelOptions {
   modelId: GooseModelId;
   settings: GooseInternalSettings;
-}
-
-/**
- * Parse a model ID in the format 'providerID/modelID'.
- * Returns the provider and model name, or null if not in that format.
- */
-function parseModelId(modelId: string): { provider: GooseProviderName; model: string } | null {
-  const slashIndex = modelId.indexOf('/');
-  if (slashIndex === -1) {
-    return null;
-  }
-
-  const providerName = modelId.slice(0, slashIndex);
-  const modelName = modelId.slice(slashIndex + 1);
-
-  if (providerName in PROVIDERS && modelName) {
-    return {
-      provider: providerName as GooseProviderName,
-      model: modelName,
-    };
-  }
-
-  return null;
 }
 
 /**
@@ -77,14 +45,6 @@ export class GooseLanguageModel implements LanguageModelV3 {
     this.modelId = options.modelId;
     this.settings = options.settings;
     this.logger = this.settings.logger;
-
-    // Parse provider/model from modelId (if in providerID/modelID format)
-    const parsed = parseModelId(options.modelId);
-    if (parsed) {
-      this.parsedProvider = parsed.provider;
-      this.parsedModel = parsed.model;
-    }
-
     this.computedEnv = this.buildEnv();
   }
 
@@ -93,39 +53,27 @@ export class GooseLanguageModel implements LanguageModelV3 {
    * If modelId is 'goose', uses locally configured goose (no env vars set).
    * If modelId is 'providerID/modelID', sets GOOSE_PROVIDER and GOOSE_MODEL.
    */
-  private buildEnv(): Record<string, string> {
-    const env: Record<string, string> = {
+  buildEnv(): Record<string, string> {
+    let env: Record<string, string> = {
       // Skip goose configure prompt - allows using goose without setup
       CONFIGURE: 'false',
       GOOSE_MODE: 'auto',
-      GOOSE_CONTEXT_STRATEGY: "summarize",
+      GOOSE_CONTEXT_STRATEGY: 'summarize',
       ...this.settings.env,
     };
 
-    // If we parsed a provider/model from modelId, set those env vars
-    if (this.parsedProvider && this.parsedModel) {
-      env.GOOSE_PROVIDER = this.parsedProvider;
-      env.GOOSE_MODEL = this.parsedModel;
-
-      // Set API key if provided
-      if (this.settings.apiKey) {
-        const apiKeyEnvVar = API_KEY_ENV_VARS[this.parsedProvider];
-        if (apiKeyEnvVar) {
-          env[apiKeyEnvVar] = this.settings.apiKey;
-        }
-      }
+    const vendorEnv = providerEnv(this.modelId, this.settings.apiKey);
+    // console.log('======> vendorEnv', vendorEnv);
+    if (vendorEnv) {
+      env = { ...env, ...vendorEnv };
     }
-    // If modelId is 'goose' or doesn't match format, use local goose config
-    // (don't set GOOSE_PROVIDER or GOOSE_MODEL)
 
-    env.GOOSE_MAX_TURNS = String(this.settings.maxTurns) || '1000';
+    env.GOOSE_MAX_TURNS = String(this.settings.maxTurns) || '1500';
 
     return env;
   }
 
-  async doGenerate(
-    options: LanguageModelV3CallOptions
-  ): Promise<LanguageModelV3GenerateResult> {
+  async doGenerate(options: LanguageModelV3CallOptions): Promise<LanguageModelV3GenerateResult> {
     const { system, prompt } = this.extractPromptParts(options.prompt);
     const args = this.buildCLIArgs(system, prompt);
 
@@ -138,9 +86,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
     return this.eventsToGenerateResult(events);
   }
 
-  async doStream(
-    options: LanguageModelV3CallOptions
-  ): Promise<LanguageModelV3StreamResult> {
+  async doStream(options: LanguageModelV3CallOptions): Promise<LanguageModelV3StreamResult> {
     const { system, prompt } = this.extractPromptParts(options.prompt);
     const args = this.buildCLIArgs(system, prompt);
 
@@ -191,10 +137,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
     return args;
   }
 
-  private async spawnGooseProcess(
-    args: string[],
-    abortSignal?: AbortSignal
-  ): Promise<GooseStreamEvent[]> {
+  private async spawnGooseProcess(args: string[], abortSignal?: AbortSignal): Promise<GooseStreamEvent[]> {
     return new Promise((resolve, reject) => {
       const events: GooseStreamEvent[] = [];
       let stderr = '';
@@ -205,9 +148,10 @@ export class GooseLanguageModel implements LanguageModelV3 {
       });
 
       const child = spawn(this.settings.binPath, args, {
-        env: this.computedEnv && Object.keys(this.computedEnv).length > 0
-          ? { ...process.env, ...this.computedEnv }
-          : process.env,
+        env:
+          this.computedEnv && Object.keys(this.computedEnv).length > 0
+            ? { ...process.env, ...this.computedEnv }
+            : process.env,
       });
 
       const timeout = setTimeout(() => {
@@ -278,12 +222,10 @@ export class GooseLanguageModel implements LanguageModelV3 {
 
         if (code !== 0 && code !== null) {
           reject(
-            createProcessError(
-              `Goose CLI exited with code ${code}`,
-              code,
-              stderr,
-              { binPath: this.settings.binPath, args }
-            )
+            createProcessError(`Goose CLI exited with code ${code}`, code, stderr, {
+              binPath: this.settings.binPath,
+              args,
+            })
           );
         } else {
           resolve(events);
@@ -297,9 +239,10 @@ export class GooseLanguageModel implements LanguageModelV3 {
     abortSignal?: AbortSignal
   ): AsyncGenerator<LanguageModelV3StreamPart> {
     const child = spawn(this.settings.binPath, args, {
-      env: this.computedEnv && Object.keys(this.computedEnv).length > 0
-        ? { ...process.env, ...this.computedEnv }
-        : process.env,
+      env:
+        this.computedEnv && Object.keys(this.computedEnv).length > 0
+          ? { ...process.env, ...this.computedEnv }
+          : process.env,
     });
     const rl = createInterface({ input: child.stdout });
 
@@ -445,18 +388,17 @@ export class GooseLanguageModel implements LanguageModelV3 {
     }
 
     if (exitCode !== 0) {
-      throw createProcessError(
-        `Goose CLI exited with code ${exitCode}`,
-        exitCode,
-        stderr,
-        { binPath: this.settings.binPath, args }
-      );
+      throw createProcessError(`Goose CLI exited with code ${exitCode}`, exitCode, stderr, {
+        binPath: this.settings.binPath,
+        args,
+      });
     }
   }
 
-  private extractPromptParts(
-    prompt: LanguageModelV3CallOptions['prompt']
-  ): { system?: string; prompt: string } {
+  private extractPromptParts(prompt: LanguageModelV3CallOptions['prompt']): {
+    system?: string;
+    prompt: string;
+  } {
     if (Array.isArray(prompt)) {
       let system: string | undefined;
       const userMessages: string[] = [];
@@ -493,9 +435,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
     return { prompt: String(prompt) };
   }
 
-  private eventsToGenerateResult(
-    events: GooseStreamEvent[]
-  ): LanguageModelV3GenerateResult {
+  private eventsToGenerateResult(events: GooseStreamEvent[]): LanguageModelV3GenerateResult {
     let text = '';
     let totalTokens = 0;
     const warnings: SharedV3Warning[] = [];

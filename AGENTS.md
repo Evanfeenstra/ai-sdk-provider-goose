@@ -7,10 +7,11 @@ AI SDK v6 provider that wraps the Goose CLI, enabling use of Goose through stand
 ```
 src/
   index.ts              # Main exports
-  goose-provider.ts     # Provider factory (createGoose, goose)
+  goose-provider.ts     # AI SDK Provider factory (createGoose, goose)
   goose-language-model.ts # Core LanguageModelV3 implementation
   types.ts              # GooseProviderSettings, GooseModelSettings, GooseModels, etc.
   errors.ts             # Error utilities (APICallError wrappers)
+  vendor.ts             # LLM model selection
 
 examples/               # Usage examples (basic, streaming, tool-call, session)
 test/                   # Vitest unit tests
@@ -48,44 +49,44 @@ test/                   # Vitest unit tests
 ## Usage
 
 ```typescript
-import { goose, GooseModels } from "ai-sdk-provider-goose";
-import { generateText, streamText } from "ai";
+import { goose, GooseModels } from 'ai-sdk-provider-goose';
+import { generateText, streamText } from 'ai';
 
 // Use locally configured goose (no provider override)
 const { text } = await generateText({
-  model: goose("goose"),
-  prompt: "Hello",
+  model: goose('goose'),
+  prompt: 'Hello',
 });
 
 // Using provider/model format
 const { text } = await generateText({
-  model: goose("anthropic/claude-sonnet-4-5"),
-  prompt: "Hello",
+  model: goose('anthropic/claude-sonnet-4-5'),
+  prompt: 'Hello',
 });
 
 // Using model shortcuts
 const { text } = await generateText({
-  model: goose(GooseModels["gpt-4o"]),
-  prompt: "Hello",
+  model: goose(GooseModels['gpt-4o']),
+  prompt: 'Hello',
 });
 
 // With model settings
-const model = goose("openai/gpt-4o", {
-  sessionName: "my-session",
+const model = goose('openai/gpt-4o', {
+  sessionName: 'my-session',
   resume: true,
   maxTurns: 500,
 });
 
 // Custom provider instance
-import { createGoose } from "ai-sdk-provider-goose";
+import { createGoose } from 'ai-sdk-provider-goose';
 
 const customGoose = createGoose({
-  binPath: "/custom/path/goose",
+  binPath: '/custom/path/goose',
   timeout: 60000,
   maxTurns: 100,
 });
 
-const model = customGoose("google/gemini-2.5-pro");
+const model = customGoose('google/gemini-2.5-pro');
 ```
 
 ## Supported Providers
@@ -95,6 +96,7 @@ const model = customGoose("google/gemini-2.5-pro");
 - `google` - Gemini models (gemini-2.5-pro, gemini-2.5-flash, etc.)
 - `xai` - Grok models (grok-3, grok-3-fast, grok-3-mini, etc.)
 - `ollama` - Local models (qwen3, llama3.2, mistral, codellama, etc.)
+- `openrouter`
 
 ## Commands
 

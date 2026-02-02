@@ -74,11 +74,15 @@ export interface GooseToolResponseContent {
   annotations?: ContentAnnotations;
 }
 
-export type GooseContentItem = GooseTextContent | GooseToolRequestContent | GooseToolResponseContent | {
-  type: string;
-  annotations?: ContentAnnotations;
-  [key: string]: unknown;
-};
+export type GooseContentItem =
+  | GooseTextContent
+  | GooseToolRequestContent
+  | GooseToolResponseContent
+  | {
+      type: string;
+      annotations?: ContentAnnotations;
+      [key: string]: unknown;
+    };
 
 /**
  * Goose message structure from session export.
@@ -98,7 +102,10 @@ export interface GooseMessage {
  * Checks if a content item should be visible to the specified audience.
  * Defensive: handles missing/malformed annotations gracefully.
  */
-export function shouldIncludeForAudience(item: { annotations?: ContentAnnotations } | null | undefined, audience: Audience): boolean {
+export function shouldIncludeForAudience(
+  item: { annotations?: ContentAnnotations } | null | undefined,
+  audience: Audience
+): boolean {
   try {
     if (!item?.annotations?.audience || !Array.isArray(item.annotations.audience)) {
       return true;
@@ -120,7 +127,7 @@ export function extractToolResultText(
   if (!content || !Array.isArray(content)) {
     return '';
   }
-  
+
   return content
     .filter((c) => c && typeof c === 'object' && shouldIncludeForAudience(c, audience))
     .map((c) => {
@@ -173,7 +180,7 @@ function convertToolRequest(content: GooseToolRequestContent): ToolCallPart | nu
 function convertToolResponse(content: GooseToolResponseContent, audience: Audience): ToolResultPart | null {
   try {
     const resultText = extractToolResultText(content?.toolResult?.value?.content, audience);
-    
+
     return {
       type: 'tool-result',
       toolCallId: content?.id || generateId(),
@@ -204,7 +211,7 @@ function convertAssistantMessage(message: GooseMessage, audience: Audience): Ass
       if (!item || typeof item !== 'object') {
         continue;
       }
-      
+
       if (!shouldIncludeForAudience(item, audience)) {
         continue;
       }
@@ -252,7 +259,7 @@ function convertUserMessage(message: GooseMessage, audience: Audience): ModelMes
       if (!item || typeof item !== 'object') {
         continue;
       }
-      
+
       if (!shouldIncludeForAudience(item, audience)) {
         continue;
       }
@@ -301,14 +308,14 @@ export function convertGooseMessage(message: GooseMessage, audience: Audience): 
     if (!message || typeof message !== 'object') {
       return [];
     }
-    
+
     if (message.role === 'assistant') {
       const converted = convertAssistantMessage(message, audience);
       return converted ? [converted] : [];
     } else if (message.role === 'user') {
       return convertUserMessage(message, audience);
     }
-    
+
     // Unknown role, skip
     return [];
   } catch {
@@ -326,7 +333,7 @@ export function convertGooseMessages(messages: GooseMessage[], audience: Audienc
     if (!messages || !Array.isArray(messages)) {
       return [];
     }
-    
+
     const result: ModelMessage[] = [];
 
     for (const message of messages) {

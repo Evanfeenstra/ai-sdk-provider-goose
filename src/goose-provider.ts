@@ -1,14 +1,7 @@
 import type { LanguageModelV3, ProviderV3 } from '@ai-sdk/provider';
 import { NoSuchModelError } from '@ai-sdk/provider';
-import {
-  GooseLanguageModel,
-  type GooseModelId,
-} from './goose-language-model.js';
-import type {
-  GooseProviderSettings,
-  GooseModelSettings,
-  GooseInternalSettings,
-} from './types.js';
+import { GooseLanguageModel, type GooseModelId } from './goose-language-model.js';
+import type { GooseProviderSettings, GooseModelSettings, GooseInternalSettings } from './types.js';
 
 /**
  * Goose provider interface extending AI SDK ProviderV3.
@@ -70,21 +63,10 @@ export interface GooseProvider extends ProviderV3 {
  * const model = provider('anthropic/claude-sonnet-4-5');
  * ```
  */
-export function createGoose(
-  settings: GooseProviderSettings = {}
-): GooseProvider {
-  const {
-    binPath = 'goose',
-    timeout = 600000,
-    args = [],
-    logger,
-    ...defaultModelSettings
-  } = settings;
+export function createGoose(settings: GooseProviderSettings = {}): GooseProvider {
+  const { binPath = 'goose', timeout = 600000, args = [], logger, ...defaultModelSettings } = settings;
 
-  const createModel = (
-    modelId: GooseModelId,
-    modelSettings?: GooseModelSettings
-  ): LanguageModelV3 => {
+  const createModel = (modelId: GooseModelId, modelSettings?: GooseModelSettings): LanguageModelV3 => {
     if (typeof modelId !== 'string' || !modelId) {
       throw new NoSuchModelError({
         modelId: String(modelId),

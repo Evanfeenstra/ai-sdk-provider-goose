@@ -284,9 +284,7 @@ describe('GooseLanguageModel', () => {
         modelId: 'anthropic/claude-sonnet-4-5',
         settings: createSettings(),
       });
-      const result = (model as any).extractPromptParts([
-        { role: 'user', content: 'What is 2+2?' },
-      ]);
+      const result = (model as any).extractPromptParts([{ role: 'user', content: 'What is 2+2?' }]);
       expect(result).toEqual({
         system: undefined,
         prompt: 'What is 2+2?',
@@ -382,9 +380,7 @@ describe('GooseLanguageModel', () => {
       // Use sleep command args directly
       const sleepArgs = ['10'];
 
-      await expect(
-        (model as any).spawnGooseProcess(sleepArgs, controller.signal)
-      ).rejects.toThrow('Request aborted');
+      await expect((model as any).spawnGooseProcess(sleepArgs, controller.signal)).rejects.toThrow('Request aborted');
     });
   });
 });

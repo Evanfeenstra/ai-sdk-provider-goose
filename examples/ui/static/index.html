@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -24,22 +24,11 @@
             <p>I'm your AI coding assistant. How can I help you today?</p>
 
             <div class="suggestion-pills">
-              <div
-                class="suggestion-pill"
-                onclick="sendSuggestion('What can you do?')"
-              >
-                What can you do?
-              </div>
-              <div
-                class="suggestion-pill"
-                onclick="sendSuggestion('List files in my current directory')"
-              >
+              <div class="suggestion-pill" onclick="sendSuggestion('What can you do?')">What can you do?</div>
+              <div class="suggestion-pill" onclick="sendSuggestion('List files in my current directory')">
                 List files in my current directory
               </div>
-              <div
-                class="suggestion-pill"
-                onclick="sendSuggestion('Write an asteroids game in a single HTML file')"
-              >
+              <div class="suggestion-pill" onclick="sendSuggestion('Write an asteroids game in a single HTML file')">
                 Write an asteroids game in a single HTML file
               </div>
             </div>
@@ -47,12 +36,7 @@
         </div>
 
         <div class="input-container">
-          <textarea
-            id="message-input"
-            placeholder="Type your message here..."
-            rows="3"
-            autofocus
-          ></textarea>
+          <textarea id="message-input" placeholder="Type your message here..." rows="3" autofocus></textarea>
           <button id="send-button" type="button">Send</button>
         </div>
       </div>

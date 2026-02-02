@@ -13,12 +13,12 @@ npm install ai-sdk-provider-goose
 ## Usage
 
 ```typescript
-import { goose } from "ai-sdk-provider-goose";
-import { generateText } from "ai";
+import { goose } from 'ai-sdk-provider-goose';
+import { generateText } from 'ai';
 
 const result = await generateText({
-  model: goose("goose"), // uses your locally configured goose
-  prompt: "What is 2+2?",
+  model: goose('goose'), // uses your locally configured goose
+  prompt: 'What is 2+2?',
 });
 
 console.log(result.text);
@@ -30,8 +30,8 @@ console.log(result.text);
 
 ```typescript
 // Use provider/model format
-const model = goose("anthropic/claude-sonnet-4-5", {
-  sessionName: "my-session", // Optional session name
+const model = goose('anthropic/claude-sonnet-4-5', {
+  sessionName: 'my-session', // Optional session name
   resume: true, // Resume previous session
   maxTurns: 500, // Max turns without user input
 });
@@ -40,15 +40,15 @@ const model = goose("anthropic/claude-sonnet-4-5", {
 ### Custom Provider Instance
 
 ```typescript
-import { createGoose } from "ai-sdk-provider-goose";
+import { createGoose } from 'ai-sdk-provider-goose';
 
 const customGoose = createGoose({
-  binPath: "/path/to/goose", // Default: 'goose'
+  binPath: '/path/to/goose', // Default: 'goose'
   timeout: 600000, // Default: 600000ms
   maxTurns: 100, // Default for all models
 });
 
-const model = customGoose("openai/gpt-4o");
+const model = customGoose('openai/gpt-4o');
 ```
 
 ### UI

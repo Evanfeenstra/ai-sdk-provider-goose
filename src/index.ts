@@ -43,27 +43,13 @@ export { GooseLanguageModel } from './goose-language-model.js';
 export type { GooseModelId } from './goose-language-model.js';
 
 // Type exports
-export type {
-  GooseProviderSettings,
-  GooseModelSettings,
-  GooseProviderName,
-  GooseModelShortcut,
-  Logger,
-} from './types.js';
+export type { GooseProviderSettings, GooseModelSettings, Logger} from './types.js';
 
-// Provider/model constants
-export {
-  PROVIDERS,
-  API_KEY_ENV_VARS,
-  GooseModels,
-} from './types.js';
+export { GooseModels } from './vendor.js';
+export type { GooseProviderName, GooseModelShortcut } from './vendor.js';
 
 // Error utilities
-export {
-  createAPICallError,
-  createTimeoutError,
-  createProcessError,
-} from './errors.js';
+export { createAPICallError, createTimeoutError, createProcessError } from './errors.js';
 export type { GooseErrorMetadata } from './errors.js';
 
 // Session utilities

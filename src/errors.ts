@@ -13,10 +13,7 @@ export interface GooseErrorMetadata {
 /**
  * Creates a general API call error.
  */
-export function createAPICallError(
-  message: string,
-  metadata?: GooseErrorMetadata
-): APICallError {
+export function createAPICallError(message: string, metadata?: GooseErrorMetadata): APICallError {
   return new APICallError({
     message,
     url: `goose://${metadata?.binPath || 'goose'}`,
@@ -29,10 +26,7 @@ export function createAPICallError(
 /**
  * Creates a timeout error (retryable).
  */
-export function createTimeoutError(
-  timeoutMs: number,
-  metadata?: GooseErrorMetadata
-): APICallError {
+export function createTimeoutError(timeoutMs: number, metadata?: GooseErrorMetadata): APICallError {
   return new APICallError({
     message: `Goose CLI timed out after ${timeoutMs}ms`,
     url: `goose://${metadata?.binPath || 'goose'}`,
