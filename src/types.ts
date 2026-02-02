@@ -7,6 +7,7 @@ export const PROVIDERS = {
   google: 'google',
   xai: 'xai',
   ollama: 'ollama',
+  openrouter: 'openrouter',
 } as const;
 
 export type GooseProviderName = keyof typeof PROVIDERS;
@@ -20,6 +21,7 @@ export const API_KEY_ENV_VARS: Record<GooseProviderName, string | null> = {
   google: 'GOOGLE_API_KEY',
   xai: 'XAI_API_KEY',
   ollama: null, // Ollama doesn't require an API key
+  openrouter: 'OPENROUTER_API_KEY',
 };
 
 /**
@@ -67,6 +69,9 @@ export const GooseModels = {
   'llama3.2': 'ollama/llama3.2',
   'mistral': 'ollama/mistral',
   'codellama': 'ollama/codellama',
+
+  // OpenRouter
+  'kimi-k2.5': 'openrouter/moonshotai/kimi-k2.5',
 } as const;
 
 export type GooseModelShortcut = keyof typeof GooseModels;
