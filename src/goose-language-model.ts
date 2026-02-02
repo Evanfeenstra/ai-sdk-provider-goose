@@ -149,11 +149,12 @@ export class GooseLanguageModel implements LanguageModelV3 {
         args,
       });
 
+      // console.log('======> computedEnv', this.computedEnv);
+      const env = this.computedEnv && Object.keys(this.computedEnv).length > 0
+        ? { ...process.env, ...this.computedEnv }
+        : process.env;
       const child = spawn(this.settings.binPath, args, {
-        env:
-          this.computedEnv && Object.keys(this.computedEnv).length > 0
-            ? { ...process.env, ...this.computedEnv }
-            : process.env,
+        env,
       });
 
       const timeout = setTimeout(() => {
@@ -240,11 +241,12 @@ export class GooseLanguageModel implements LanguageModelV3 {
     args: string[],
     abortSignal?: AbortSignal
   ): AsyncGenerator<LanguageModelV3StreamPart> {
+    // console.log('======> computedEnv', this.computedEnv);
+    const env = this.computedEnv && Object.keys(this.computedEnv).length > 0
+      ? { ...process.env, ...this.computedEnv }
+      : process.env;
     const child = spawn(this.settings.binPath, args, {
-      env:
-        this.computedEnv && Object.keys(this.computedEnv).length > 0
-          ? { ...process.env, ...this.computedEnv }
-          : process.env,
+      env,
     });
     const rl = createInterface({ input: child.stdout });
 

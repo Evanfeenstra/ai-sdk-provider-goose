@@ -1,5 +1,4 @@
 // SSE connection and chat functionality
-const GOOSE_URL = 'http://localhost:5678';
 let eventSource = null;
 let sessionId = getSessionId();
 let sessionToken = null;
@@ -205,7 +204,7 @@ function startNewSession() {
 // Load session history from server
 async function loadSessionHistory() {
   try {
-    const response = await fetch(`${GOOSE_URL}/session/${sessionId}`);
+    const response = await fetch(`/session/${sessionId}`);
     if (!response.ok) {
       console.log('No existing session found');
       return;
@@ -327,7 +326,7 @@ async function initializeConnection() {
 // Create session and get token (called before streaming)
 async function createSession() {
   try {
-    const response = await fetch(`${GOOSE_URL}/session`, {
+    const response = await fetch(`/session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -557,7 +556,7 @@ async function sendMessage() {
     }
 
     // Start SSE stream
-    const streamUrl = `${GOOSE_URL}/stream/${sessionId}?token=${encodeURIComponent(sessionToken)}`;
+    const streamUrl = `/stream/${sessionId}?token=${encodeURIComponent(sessionToken)}`;
 
     // Use fetch to POST the message and get SSE stream
     const response = await fetch(streamUrl, {
