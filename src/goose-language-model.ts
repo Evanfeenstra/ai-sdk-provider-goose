@@ -31,7 +31,7 @@ export interface GooseLanguageModelOptions {
  * If modelId is 'goose', uses locally configured goose (no env vars set).
  * If modelId is 'providerID/modelID', sets GOOSE_PROVIDER and GOOSE_MODEL.
  */
-export function buildGooseEnv(modelId: GooseModelId, settings: GooseInternalSettings): Record<string, string> {
+export function buildGooseEnv(modelId: GooseModelId, apiKey?: string, maxTurns?: number): Record<string, string> {
   let env: Record<string, string> = {
     // Skip goose configure prompt - allows using goose without setup
     CONFIGURE: 'false',
@@ -39,13 +39,17 @@ export function buildGooseEnv(modelId: GooseModelId, settings: GooseInternalSett
     GOOSE_CONTEXT_STRATEGY: 'summarize',
   };
 
-  const vendorEnv = buildProviderEnv(modelId, settings.apiKey);
+  const vendorEnv = buildProviderEnv(modelId, apiKey);
   // console.log('======> vendorEnv', vendorEnv);
   if (vendorEnv) {
     env = { ...env, ...vendorEnv };
   }
 
-  env.GOOSE_MAX_TURNS = String(settings.maxTurns) || '1500';
+  if (maxTurns) {
+    env.GOOSE_MAX_TURNS = String(maxTurns);
+  } else {
+    env.GOOSE_MAX_TURNS = '1500';
+  }
 
   return env;
 }
@@ -67,7 +71,7 @@ export class GooseLanguageModel implements LanguageModelV3 {
     this.modelId = options.modelId;
     this.settings = options.settings;
     this.logger = this.settings.logger;
-    const env = buildGooseEnv(this.modelId, this.settings);
+    const env = buildGooseEnv(this.modelId, this.settings.apiKey, this.settings.maxTurns);
     this.computedEnv = { ...env, ...this.settings.env };
   }
 
