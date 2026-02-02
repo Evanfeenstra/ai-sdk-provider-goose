@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  createAPICallError,
-  createTimeoutError,
-  createProcessError,
-} from '../src/errors.js';
+import { createAPICallError, createTimeoutError, createProcessError } from '../src/errors.js';
 
 describe('Error utilities', () => {
   describe('createAPICallError', () => {

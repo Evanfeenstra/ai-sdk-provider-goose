@@ -1,16 +1,7 @@
 import type { LanguageModelV3, ProviderV3 } from '@ai-sdk/provider';
 import { NoSuchModelError } from '@ai-sdk/provider';
-import {
-  GooseLanguageModel,
-  type GooseModelId,
-} from './goose-language-model.js';
-import type {
-  GooseProviderSettings,
-  GooseModelSettings,
-  GooseInternalSettings,
-  GooseProviderName,
-} from './types.js';
-import { PROVIDERS } from './types.js';
+import { GooseLanguageModel, type GooseModelId } from './goose-language-model.js';
+import type { GooseProviderSettings, GooseModelSettings, GooseInternalSettings } from './types.js';
 
 /**
  * Goose provider interface extending AI SDK ProviderV3.
@@ -52,34 +43,6 @@ export interface GooseProvider extends ProviderV3 {
 }
 
 /**
- * Parse a model ID in the format 'providerID/modelID' or 'providerID/org/modelID'.
- * Returns the provider and model name, or null if not in that format.
- * 
- * Handles multi-part models like OpenRouter: 'openrouter/moonshotai/kimi-k2.5'
- * where the model part includes the organization.
- */
-export function parseModelId(modelId: string): { provider: GooseProviderName; model: string } | null {
-  const slashIndex = modelId.indexOf('/');
-  if (slashIndex === -1) {
-    return null;
-  }
-
-  const providerName = modelId.slice(0, slashIndex);
-  // Everything after the first slash is the model ID
-  // This handles formats like 'anthropic/claude-sonnet-4-5' and 'openrouter/moonshotai/kimi-k2.5'
-  const modelName = modelId.slice(slashIndex + 1);
-
-  if (providerName in PROVIDERS && modelName) {
-    return {
-      provider: providerName as GooseProviderName,
-      model: modelName,
-    };
-  }
-
-  return null;
-}
-
-/**
  * Creates a Goose provider with the specified settings.
  *
  * @param settings Provider-level settings (also serves as defaults for all models)
@@ -100,21 +63,10 @@ export function parseModelId(modelId: string): { provider: GooseProviderName; mo
  * const model = provider('anthropic/claude-sonnet-4-5');
  * ```
  */
-export function createGoose(
-  settings: GooseProviderSettings = {}
-): GooseProvider {
-  const {
-    binPath = 'goose',
-    timeout = 600000,
-    args = [],
-    logger,
-    ...defaultModelSettings
-  } = settings;
+export function createGoose(settings: GooseProviderSettings = {}): GooseProvider {
+  const { binPath = 'goose', timeout = 600000, args = [], logger, ...defaultModelSettings } = settings;
 
-  const createModel = (
-    modelId: GooseModelId,
-    modelSettings?: GooseModelSettings
-  ): LanguageModelV3 => {
+  const createModel = (modelId: GooseModelId, modelSettings?: GooseModelSettings): LanguageModelV3 => {
     if (typeof modelId !== 'string' || !modelId) {
       throw new NoSuchModelError({
         modelId: String(modelId),

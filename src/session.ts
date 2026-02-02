@@ -4,11 +4,7 @@
 
 import { execSync } from 'child_process';
 import type { ModelMessage } from '@ai-sdk/provider-utils';
-import {
-  convertGooseMessages,
-  type GooseMessage,
-  type Audience,
-} from './convert.js';
+import { convertGooseMessages, type GooseMessage, type Audience } from './convert.js';
 
 export type { Audience, GooseMessage } from './convert.js';
 

@@ -48,44 +48,44 @@ test/                   # Vitest unit tests
 ## Usage
 
 ```typescript
-import { goose, GooseModels } from "ai-sdk-provider-goose";
-import { generateText, streamText } from "ai";
+import { goose, GooseModels } from 'ai-sdk-provider-goose';
+import { generateText, streamText } from 'ai';
 
 // Use locally configured goose (no provider override)
 const { text } = await generateText({
-  model: goose("goose"),
-  prompt: "Hello",
+  model: goose('goose'),
+  prompt: 'Hello',
 });
 
 // Using provider/model format
 const { text } = await generateText({
-  model: goose("anthropic/claude-sonnet-4-5"),
-  prompt: "Hello",
+  model: goose('anthropic/claude-sonnet-4-5'),
+  prompt: 'Hello',
 });
 
 // Using model shortcuts
 const { text } = await generateText({
-  model: goose(GooseModels["gpt-4o"]),
-  prompt: "Hello",
+  model: goose(GooseModels['gpt-4o']),
+  prompt: 'Hello',
 });
 
 // With model settings
-const model = goose("openai/gpt-4o", {
-  sessionName: "my-session",
+const model = goose('openai/gpt-4o', {
+  sessionName: 'my-session',
   resume: true,
   maxTurns: 500,
 });
 
 // Custom provider instance
-import { createGoose } from "ai-sdk-provider-goose";
+import { createGoose } from 'ai-sdk-provider-goose';
 
 const customGoose = createGoose({
-  binPath: "/custom/path/goose",
+  binPath: '/custom/path/goose',
   timeout: 60000,
   maxTurns: 100,
 });
 
-const model = customGoose("google/gemini-2.5-pro");
+const model = customGoose('google/gemini-2.5-pro');
 ```
 
 ## Supported Providers

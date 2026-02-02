@@ -1,24 +1,24 @@
-import http from "node:http";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { randomUUID } from "node:crypto";
-import { streamText } from "ai";
-import { goose, exportSession } from "../../dist/index.js";
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { randomUUID } from 'node:crypto';
+import { streamText } from 'ai';
+import { goose, exportSession } from '../../dist/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const STATIC_DIR = path.join(__dirname, "static");
+const STATIC_DIR = path.join(__dirname, 'static');
 const PORT = process.env.PORT || 5678;
 
 // MIME types for static files
 const MIME_TYPES = {
-  ".html": "text/html",
-  ".css": "text/css",
-  ".js": "application/javascript",
-  ".json": "application/json",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".svg": "image/svg+xml",
+  '.html': 'text/html',
+  '.css': 'text/css',
+  '.js': 'application/javascript',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
 };
 
 // In-memory session store
@@ -33,16 +33,16 @@ function sendSSE(res, event, data) {
 // Parse JSON body from request
 async function parseBody(req) {
   return new Promise((resolve, reject) => {
-    let body = "";
-    req.on("data", (chunk) => (body += chunk));
-    req.on("end", () => {
+    let body = '';
+    req.on('data', (chunk) => (body += chunk));
+    req.on('end', () => {
       try {
         resolve(body ? JSON.parse(body) : {});
       } catch (e) {
         reject(e);
       }
     });
-    req.on("error", reject);
+    req.on('error', reject);
   });
 }
 
@@ -52,34 +52,31 @@ function serveStatic(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname;
 
-  let filePath = path.join(
-    STATIC_DIR,
-    pathname === "/" ? "index.html" : pathname
-  );
+  let filePath = path.join(STATIC_DIR, pathname === '/' ? 'index.html' : pathname);
 
   // Prevent directory traversal
   if (!filePath.startsWith(STATIC_DIR)) {
     res.writeHead(403);
-    res.end("Forbidden");
+    res.end('Forbidden');
     return;
   }
 
   const ext = path.extname(filePath);
-  const contentType = MIME_TYPES[ext] || "application/octet-stream";
+  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
   fs.readFile(filePath, (err, data) => {
     if (err) {
-      if (err.code === "ENOENT") {
+      if (err.code === 'ENOENT') {
         res.writeHead(404);
-        res.end("Not Found");
+        res.end('Not Found');
       } else {
         res.writeHead(500);
-        res.end("Internal Server Error");
+        res.end('Internal Server Error');
       }
       return;
     }
 
-    res.writeHead(200, { "Content-Type": contentType });
+    res.writeHead(200, { 'Content-Type': contentType });
     res.end(data);
   });
 }
@@ -89,15 +86,15 @@ function handleGetSession(req, res, sessionId) {
   try {
     const messages = exportSession(sessionId);
     res.writeHead(200, {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
     });
     res.end(JSON.stringify({ messages }));
   } catch (error) {
     // Session doesn't exist yet, return empty messages
     res.writeHead(200, {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
     });
     res.end(JSON.stringify({ messages: [] }));
   }
@@ -117,12 +114,12 @@ async function handleCreateSession(req, res) {
     });
 
     res.writeHead(200, {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
     });
     res.end(JSON.stringify({ sessionId, token }));
   } catch (error) {
-    res.writeHead(400, { "Content-Type": "application/json" });
+    res.writeHead(400, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: error.message }));
   }
 }
@@ -131,13 +128,13 @@ async function handleCreateSession(req, res) {
 async function handleStream(req, res, sessionId) {
   // Parse token from query string
   const url = new URL(req.url, `http://${req.headers.host}`);
-  const token = url.searchParams.get("token");
+  const token = url.searchParams.get('token');
 
   // Validate session
   const session = sessions.get(sessionId);
   if (!session || session.token !== token) {
-    res.writeHead(401, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: "Invalid session or token" }));
+    res.writeHead(401, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Invalid session or token' }));
     return;
   }
 
@@ -146,24 +143,26 @@ async function handleStream(req, res, sessionId) {
     const { prompt, system, resume, provider, model, apiKey, maxTurns } = body;
 
     if (!prompt) {
-      res.writeHead(400, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "prompt is required" }));
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'prompt is required' }));
       return;
     }
 
     // Set up SSE headers
     res.writeHead(200, {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-      "Access-Control-Allow-Origin": "*",
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
     });
 
     // Build goose settings - provider/model/apiKey can be passed in request
     // or configured via environment variables
     const shouldResume = resume ?? session.resume;
-    console.log(`[Stream] sessionId=${sessionId}, resume=${shouldResume}, body.resume=${resume}, session.resume=${session.resume}`);
-    
+    console.log(
+      `[Stream] sessionId=${sessionId}, resume=${shouldResume}, body.resume=${resume}, session.resume=${session.resume}`
+    );
+
     const settings = {
       sessionName: sessionId,
       resume: shouldResume,
@@ -176,7 +175,7 @@ async function handleStream(req, res, sessionId) {
 
     // Stream from goose
     const result = streamText({
-      model: goose("goose", settings),
+      model: goose('goose', settings),
       prompt,
       system,
     });
@@ -187,15 +186,15 @@ async function handleStream(req, res, sessionId) {
     // Stream full AI SDK stream parts
     for await (const part of result.fullStream) {
       // console.log("part", JSON.stringify(part, null, 2));
-      sendSSE(res, "message", part);
+      sendSSE(res, 'message', part);
     }
 
     // Send finish event
-    sendSSE(res, "message", { type: "finish", finishReason: "stop" });
+    sendSSE(res, 'message', { type: 'finish', finishReason: 'stop' });
     res.end();
   } catch (error) {
-    console.error("Stream error:", error);
-    sendSSE(res, "message", { type: "error", error: error.message });
+    console.error('Stream error:', error);
+    sendSSE(res, 'message', { type: 'error', error: error.message });
     res.end();
   }
 }
@@ -206,39 +205,39 @@ const server = http.createServer(async (req, res) => {
   const pathname = url.pathname;
 
   // CORS preflight
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     res.writeHead(204, {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     });
     res.end();
     return;
   }
 
   // API routes
-  if (pathname === "/session" && req.method === "POST") {
+  if (pathname === '/session' && req.method === 'POST') {
     return handleCreateSession(req, res);
   }
 
   // GET /session/:id - export session history
   const sessionMatch = pathname.match(/^\/session\/([^/]+)$/);
-  if (sessionMatch && req.method === "GET") {
+  if (sessionMatch && req.method === 'GET') {
     return handleGetSession(req, res, sessionMatch[1]);
   }
 
   const streamMatch = pathname.match(/^\/stream\/([^/]+)$/);
-  if (streamMatch && req.method === "POST") {
+  if (streamMatch && req.method === 'POST') {
     return handleStream(req, res, streamMatch[1]);
   }
 
   // Static files
-  if (req.method === "GET") {
+  if (req.method === 'GET') {
     return serveStatic(req, res);
   }
 
   res.writeHead(404);
-  res.end("Not Found");
+  res.end('Not Found');
 });
 
 server.listen(PORT, () => {

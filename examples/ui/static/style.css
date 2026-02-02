@@ -12,11 +12,7 @@
   --accent-color: #a78bfa;
   --accent-secondary: #60a5fa;
   --accent-hover: #c4b5fd;
-  --user-bg: linear-gradient(
-    135deg,
-    rgba(167, 139, 250, 0.15),
-    rgba(96, 165, 250, 0.1)
-  );
+  --user-bg: linear-gradient(135deg, rgba(167, 139, 250, 0.15), rgba(96, 165, 250, 0.1));
   --assistant-bg: rgba(255, 255, 255, 0.03);
   --input-bg: rgba(255, 255, 255, 0.05);
   --input-border: rgba(255, 255, 255, 0.1);
@@ -49,11 +45,7 @@
     --accent-color: #7c3aed;
     --accent-secondary: #3b82f6;
     --accent-hover: #6d28d9;
-    --user-bg: linear-gradient(
-      135deg,
-      rgba(124, 58, 237, 0.1),
-      rgba(59, 130, 246, 0.08)
-    );
+    --user-bg: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.08));
     --assistant-bg: rgba(255, 255, 255, 0.8);
     --input-bg: rgba(255, 255, 255, 0.9);
     --input-border: rgba(0, 0, 0, 0.1);
@@ -72,7 +64,7 @@
   }
 
   header h1::before {
-    background-image: url("/static/img/logo_light.png");
+    background-image: url('/static/img/logo_light.png');
   }
 }
 
@@ -83,51 +75,34 @@
 }
 
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
   color: var(--text-primary);
   line-height: 1.6;
   height: 100vh;
   overflow: hidden;
   font-size: 14px;
   /* Sweet gradient background */
-  background: radial-gradient(
-      ellipse at 20% 0%,
-      rgba(167, 139, 250, 0.15) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse at 80% 0%,
-      rgba(96, 165, 250, 0.12) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse at 50% 100%,
-      rgba(52, 211, 153, 0.08) 0%,
-      transparent 50%
-    ),
-    var(--bg-primary);
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(167, 139, 250, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 0%, rgba(96, 165, 250, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(52, 211, 153, 0.08) 0%, transparent 50%), var(--bg-primary);
   background-attachment: fixed;
 }
 
 @media (prefers-color-scheme: light) {
   body {
-    background: radial-gradient(
-        ellipse at 20% 0%,
-        rgba(124, 58, 237, 0.08) 0%,
-        transparent 50%
-      ),
-      radial-gradient(
-        ellipse at 80% 0%,
-        rgba(59, 130, 246, 0.06) 0%,
-        transparent 50%
-      ),
-      radial-gradient(
-        ellipse at 50% 100%,
-        rgba(16, 185, 129, 0.05) 0%,
-        transparent 50%
-      ),
-      var(--bg-primary);
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(124, 58, 237, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 50%), var(--bg-primary);
     background-attachment: fixed;
   }
 }
@@ -165,7 +140,7 @@ header h1 {
 }
 
 header h1::before {
-  content: "";
+  content: '';
   width: 36px;
   height: 36px;
   background-size: contain;
@@ -191,8 +166,7 @@ header h1::before {
   border: 1px solid var(--border-color);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  font-family: "JetBrains Mono", "SF Mono", "Monaco", "Inconsolata",
-    "Roboto Mono", monospace;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
   letter-spacing: 0.02em;
 }
 
@@ -247,12 +221,7 @@ header h1::before {
   font-size: 2rem;
   margin-bottom: 0.75rem;
   font-weight: 700;
-  background: linear-gradient(
-    135deg,
-    var(--gradient-1),
-    var(--gradient-2),
-    var(--gradient-3)
-  );
+  background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -350,8 +319,7 @@ header h1::before {
   background: var(--code-bg);
   padding: 0.2rem 0.5rem;
   border-radius: 0.35rem;
-  font-family: "JetBrains Mono", "SF Mono", "Monaco", "Inconsolata",
-    "Roboto Mono", monospace;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
   font-size: 0.8rem;
   border: 1px solid var(--border-color);
 }
@@ -516,8 +484,7 @@ header h1::before {
 }
 
 .tool-content {
-  font-family: "JetBrains Mono", "SF Mono", "Monaco", "Inconsolata",
-    "Roboto Mono", monospace;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
   font-size: 0.8rem;
   color: var(--text-secondary);
   overflow-x: auto;

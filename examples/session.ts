@@ -20,7 +20,10 @@ export async function sessionExample() {
 
     // Second call - resumes session
     console.log('Second call - resuming session:', sessionName);
-    const model2 = goose('anthropic/claude-sonnet-4-5', { sessionName, resume: true });
+    const model2 = goose('anthropic/claude-sonnet-4-5', {
+      sessionName,
+      resume: true,
+    });
     const result2 = await generateText({
       model: model2,
       prompt: 'What is my name?',
