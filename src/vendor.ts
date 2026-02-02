@@ -29,7 +29,7 @@ export const GooseModels = {
   'gpt-4o-mini': 'openai/gpt-4o-mini',
   'gpt-4.1': 'openai/gpt-4.1',
   'gpt-4.1-mini': 'openai/gpt-4.1-mini',
-  'o1': 'openai/o1',
+  o1: 'openai/o1',
   o3: 'openai/o3',
   'o4-mini': 'openai/o4-mini',
   'gpt-4-turbo': 'openai/gpt-4-turbo',
@@ -104,7 +104,7 @@ export function parseModelId(modelId: string): { provider: GooseProviderName; mo
   return null;
 }
 
-export function providerEnv(modelId: string, apiKey?: string) {
+export function buildProviderEnv(modelId: string, apiKey?: string) {
   const parsed = parseModelId(modelId);
   if (!parsed || !parsed.provider || !parsed.model) {
     return null;

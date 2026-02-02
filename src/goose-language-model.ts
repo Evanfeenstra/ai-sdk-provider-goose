@@ -12,7 +12,7 @@ import { generateId } from '@ai-sdk/provider-utils';
 import type { GooseInternalSettings, GooseStreamEvent, Logger } from './types.js';
 import { createAPICallError, createTimeoutError, createProcessError } from './errors.js';
 import { extractToolResultText } from './convert.js';
-import { providerEnv, type GooseProviderName } from './vendor.js';
+import { buildProviderEnv, type GooseProviderName } from './vendor.js';
 
 /**
  * Model ID - either 'goose' (use local config), or 'providerID/modelID' format.
@@ -27,6 +27,30 @@ export interface GooseLanguageModelOptions {
 }
 
 /**
+ * Build environment variables from settings.
+ * If modelId is 'goose', uses locally configured goose (no env vars set).
+ * If modelId is 'providerID/modelID', sets GOOSE_PROVIDER and GOOSE_MODEL.
+ */
+export function buildGooseEnv(modelId: GooseModelId, settings: GooseInternalSettings): Record<string, string> {
+  let env: Record<string, string> = {
+    // Skip goose configure prompt - allows using goose without setup
+    CONFIGURE: 'false',
+    GOOSE_MODE: 'auto',
+    GOOSE_CONTEXT_STRATEGY: 'summarize',
+  };
+
+  const vendorEnv = buildProviderEnv(modelId, settings.apiKey);
+  // console.log('======> vendorEnv', vendorEnv);
+  if (vendorEnv) {
+    env = { ...env, ...vendorEnv };
+  }
+
+  env.GOOSE_MAX_TURNS = String(settings.maxTurns) || '1500';
+
+  return env;
+}
+
+/**
  * Goose CLI language model implementation for AI SDK.
  */
 export class GooseLanguageModel implements LanguageModelV3 {
@@ -38,39 +62,13 @@ export class GooseLanguageModel implements LanguageModelV3 {
   private settings: GooseInternalSettings;
   private logger?: Logger;
   private computedEnv?: Record<string, string>;
-  private parsedProvider?: GooseProviderName;
-  private parsedModel?: string;
 
   constructor(options: GooseLanguageModelOptions) {
     this.modelId = options.modelId;
     this.settings = options.settings;
     this.logger = this.settings.logger;
-    this.computedEnv = this.buildEnv();
-  }
-
-  /**
-   * Build environment variables from settings.
-   * If modelId is 'goose', uses locally configured goose (no env vars set).
-   * If modelId is 'providerID/modelID', sets GOOSE_PROVIDER and GOOSE_MODEL.
-   */
-  buildEnv(): Record<string, string> {
-    let env: Record<string, string> = {
-      // Skip goose configure prompt - allows using goose without setup
-      CONFIGURE: 'false',
-      GOOSE_MODE: 'auto',
-      GOOSE_CONTEXT_STRATEGY: 'summarize',
-      ...this.settings.env,
-    };
-
-    const vendorEnv = providerEnv(this.modelId, this.settings.apiKey);
-    // console.log('======> vendorEnv', vendorEnv);
-    if (vendorEnv) {
-      env = { ...env, ...vendorEnv };
-    }
-
-    env.GOOSE_MAX_TURNS = String(this.settings.maxTurns) || '1500';
-
-    return env;
+    const env = buildGooseEnv(this.modelId, this.settings);
+    this.computedEnv = { ...env, ...this.settings.env };
   }
 
   async doGenerate(options: LanguageModelV3CallOptions): Promise<LanguageModelV3GenerateResult> {

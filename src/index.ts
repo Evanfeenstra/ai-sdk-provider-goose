@@ -39,11 +39,11 @@ export { createGoose, goose } from './goose-provider.js';
 export type { GooseProvider } from './goose-provider.js';
 
 // Language model exports
-export { GooseLanguageModel } from './goose-language-model.js';
+export { GooseLanguageModel, buildGooseEnv } from './goose-language-model.js';
 export type { GooseModelId } from './goose-language-model.js';
 
 // Type exports
-export type { GooseProviderSettings, GooseModelSettings, Logger} from './types.js';
+export type { GooseProviderSettings, GooseModelSettings, Logger } from './types.js';
 
 export { GooseModels } from './vendor.js';
 export type { GooseProviderName, GooseModelShortcut } from './vendor.js';
