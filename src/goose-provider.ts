@@ -10,12 +10,12 @@ export interface GooseProvider extends ProviderV3 {
   /**
    * Create a language model (callable shorthand).
    *
-   * @param modelId Model ID in 'providerID/modelID' format (e.g., 'anthropic/claude-sonnet-4-5')
+   * @param modelId Model ID in 'providerID/modelID' format (e.g., 'anthropic/claude-sonnet-4-6')
    * @param settings Optional model-level settings
    *
    * @example
    * ```typescript
-   * const model = goose('anthropic/claude-sonnet-4-5');
+   * const model = goose('anthropic/claude-sonnet-4-6');
    * const model = goose('openai/gpt-4o', { sessionName: 'my-session' });
    * ```
    */
@@ -60,7 +60,7 @@ export interface GooseProvider extends ProviderV3 {
  * });
  *
  * // Use provider/model format
- * const model = provider('anthropic/claude-sonnet-4-5');
+ * const model = provider('anthropic/claude-sonnet-4-6');
  * ```
  */
 export function createGoose(settings: GooseProviderSettings = {}): GooseProvider {
@@ -121,13 +121,13 @@ export function createGoose(settings: GooseProviderSettings = {}): GooseProvider
  *
  * // Using full model ID
  * const result = await generateText({
- *   model: goose('anthropic/claude-sonnet-4-5'),
+ *   model: goose('anthropic/claude-sonnet-4-6'),
  *   prompt: 'Hello!',
  * });
  *
  * // Using model shortcuts
  * const result = await generateText({
- *   model: goose(GooseModels['claude-sonnet-4-5']),
+ *   model: goose(GooseModels['claude-sonnet-4-6']),
  *   prompt: 'Hello!',
  * });
  *

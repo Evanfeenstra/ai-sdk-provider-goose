@@ -16,7 +16,7 @@
  *
  * // Using provider/model ID format
  * const result = await generateText({
- *   model: goose('anthropic/claude-sonnet-4-5'),
+ *   model: goose('anthropic/claude-sonnet-4-6'),
  *   prompt: 'What is 2+2?',
  * });
  *
@@ -27,7 +27,7 @@
  * });
  *
  * // With session management
- * const model = goose('anthropic/claude-sonnet-4-5', {
+ * const model = goose('anthropic/claude-sonnet-4-6', {
  *   sessionName: 'my-session',
  *   resume: true,
  * });

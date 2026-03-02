@@ -42,7 +42,7 @@ test/                   # Vitest unit tests
 - `apiKey` - API key for the provider
 - `maxTurns` - Maximum number of turns
 
-**GooseModels** - Model shortcuts for common models (e.g., `GooseModels['claude-sonnet-4-5']`)
+**GooseModels** - Model shortcuts for common models (e.g., `GooseModels['claude-sonnet-4-6']`)
 
 **GooseStreamEvent** - JSONL events from CLI: `message`, `complete`, `error`, `notification`
 
@@ -60,7 +60,7 @@ const { text } = await generateText({
 
 // Using provider/model format
 const { text } = await generateText({
-  model: goose('anthropic/claude-sonnet-4-5'),
+  model: goose('anthropic/claude-sonnet-4-6'),
   prompt: 'Hello',
 });
 
@@ -91,7 +91,7 @@ const model = customGoose('google/gemini-2.5-pro');
 
 ## Supported Providers
 
-- `anthropic` - Claude models (claude-sonnet-4-5, claude-haiku-4-5, claude-opus-4-5, etc.)
+- `anthropic` - Claude models (claude-sonnet-4-6, claude-haiku-4-5, claude-opus-4-6, etc.)
 - `openai` - GPT models (gpt-4o, gpt-4o-mini, o1, o3, etc.)
 - `google` - Gemini models (gemini-2.5-pro, gemini-2.5-flash, etc.)
 - `xai` - Grok models (grok-3, grok-3-fast, grok-3-mini, etc.)

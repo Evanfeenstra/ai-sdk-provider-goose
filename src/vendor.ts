@@ -14,13 +14,13 @@ export type GooseProviderName = keyof typeof PROVIDERS;
 
 /**
  * Model shortcuts for common models.
- * Use with: goose(GooseModels['claude-sonnet-4-5'])
+ * Use with: goose(GooseModels['claude-sonnet-4-6'])
  */
 export const GooseModels = {
   // Anthropic Claude
-  'claude-sonnet-4-5': 'anthropic/claude-sonnet-4-5',
+  'claude-sonnet-4-6': 'anthropic/claude-sonnet-4-6',
   'claude-haiku-4-5': 'anthropic/claude-haiku-4-5',
-  'claude-opus-4-5': 'anthropic/claude-opus-4-5',
+  'claude-opus-4-6': 'anthropic/claude-opus-4-6',
   'claude-sonnet-4-0': 'anthropic/claude-sonnet-4-0',
   'claude-opus-4-0': 'anthropic/claude-opus-4-0',
 
@@ -92,7 +92,7 @@ export function parseModelId(modelId: string): { provider: GooseProviderName; mo
 
   const providerName = modelId.slice(0, slashIndex);
   // Everything after the first slash is the model ID
-  // This handles formats like 'anthropic/claude-sonnet-4-5' and 'openrouter/moonshotai/kimi-k2.5'
+  // This handles formats like 'anthropic/claude-sonnet-4-6' and 'openrouter/moonshotai/kimi-k2.5'
   const modelName = modelId.slice(slashIndex + 1);
 
   if (providerName in PROVIDERS && modelName) {

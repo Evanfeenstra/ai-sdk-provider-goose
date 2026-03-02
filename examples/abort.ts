@@ -16,7 +16,7 @@ export async function abortExample() {
     }, 2000);
 
     try {
-      const model1 = goose('anthropic/claude-sonnet-4-5');
+      const model1 = goose('anthropic/claude-sonnet-4-6');
       await generateText({
         model: model1,
         prompt: 'Write a very long story about a robot',
@@ -40,7 +40,7 @@ export async function abortExample() {
     }, 2000);
 
     try {
-      const model2 = goose('anthropic/claude-sonnet-4-5');
+      const model2 = goose('anthropic/claude-sonnet-4-6');
       const result = streamText({
         model: model2,
         prompt: 'Count from 1 to 100 slowly',

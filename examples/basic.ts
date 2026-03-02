@@ -5,10 +5,10 @@ export async function basicExample() {
   console.log('=== Basic Text Generation ===\n');
 
   // Use the provider/model format
-  const model = goose('anthropic/claude-sonnet-4-5');
+  const model = goose('anthropic/claude-sonnet-4-6');
 
   // Or use GooseModels shortcuts:
-  // const model = goose(GooseModels['claude-sonnet-4-5']);
+  // const model = goose(GooseModels['claude-sonnet-4-6']);
 
   try {
     const result = await generateText({

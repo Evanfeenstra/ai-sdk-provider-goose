@@ -4,7 +4,7 @@ import { streamText } from 'ai';
 export async function fullStreamExample() {
   console.log('=== Full Stream Test ===\n');
 
-  const model = goose('anthropic/claude-sonnet-4-5');
+  const model = goose('anthropic/claude-sonnet-4-6');
 
   try {
     const result = streamText({

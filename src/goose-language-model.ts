@@ -17,7 +17,7 @@ import { buildProviderEnv, type GooseProviderName } from './vendor.js';
 /**
  * Model ID - either 'goose' (use local config), or 'providerID/modelID' format.
  * @example 'goose' - uses locally configured goose
- * @example 'anthropic/claude-sonnet-4-5' - specific provider/model
+ * @example 'anthropic/claude-sonnet-4-6' - specific provider/model
  */
 export type GooseModelId = 'goose' | `${GooseProviderName}/${string}` | (string & {});
 

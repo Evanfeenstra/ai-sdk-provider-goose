@@ -52,9 +52,9 @@ describe('GooseProvider', () => {
     });
 
     it('should create a model when called with provider/model format', () => {
-      const model = goose('anthropic/claude-sonnet-4-5');
+      const model = goose('anthropic/claude-sonnet-4-6');
       expect(model).toBeInstanceOf(GooseLanguageModel);
-      expect(model.modelId).toBe('anthropic/claude-sonnet-4-5');
+      expect(model.modelId).toBe('anthropic/claude-sonnet-4-6');
     });
 
     it('should create a model with settings', () => {
@@ -75,7 +75,7 @@ describe('GooseProvider', () => {
         maxTurns: 500,
       });
 
-      const model = provider('anthropic/claude-sonnet-4-5', {
+      const model = provider('anthropic/claude-sonnet-4-6', {
         sessionName: 'my-session',
       });
 

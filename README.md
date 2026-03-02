@@ -30,7 +30,7 @@ console.log(result.text);
 
 ```typescript
 // Use provider/model format
-const model = goose('anthropic/claude-sonnet-4-5', {
+const model = goose('anthropic/claude-sonnet-4-6', {
   sessionName: 'my-session', // Optional session name
   resume: true, // Resume previous session
   maxTurns: 500, // Max turns without user input

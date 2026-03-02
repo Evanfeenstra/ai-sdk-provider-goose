@@ -16,11 +16,11 @@ describe('GooseLanguageModel', () => {
   describe('constructor', () => {
     it('should create a model with default settings', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings(),
       });
 
-      expect(model.modelId).toBe('anthropic/claude-sonnet-4-5');
+      expect(model.modelId).toBe('anthropic/claude-sonnet-4-6');
       expect(model.provider).toBe('goose');
       expect(model.specificationVersion).toBe('v3');
     });
@@ -69,7 +69,7 @@ describe('GooseLanguageModel', () => {
   describe('CLI args building', () => {
     it('should build basic args without session', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings(),
       });
 
@@ -89,7 +89,7 @@ describe('GooseLanguageModel', () => {
 
     it('should include --name flag when sessionName is provided', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings({
           sessionName: 'my-session',
         }),
@@ -103,7 +103,7 @@ describe('GooseLanguageModel', () => {
 
     it('should include --resume flag when resume is true', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings({
           sessionName: 'my-session',
           resume: true,
@@ -119,7 +119,7 @@ describe('GooseLanguageModel', () => {
 
     it('should not include --resume when resume is false', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings({
           sessionName: 'my-session',
           resume: false,
@@ -134,7 +134,7 @@ describe('GooseLanguageModel', () => {
 
     it('should include additional args', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings({
           args: ['--custom-arg', 'value'],
         }),
@@ -148,7 +148,7 @@ describe('GooseLanguageModel', () => {
 
     it('should include --system flag when system prompt is provided', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings(),
       });
 
@@ -162,7 +162,7 @@ describe('GooseLanguageModel', () => {
 
     it('should store env settings when provided', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings({
           env: {
             GOOSE_API_KEY: 'test-key',
@@ -177,12 +177,12 @@ describe('GooseLanguageModel', () => {
       expect(computedEnv.CUSTOM_VAR).toBe('value');
       // Also has provider/model from modelId
       expect(computedEnv.GOOSE_PROVIDER).toBe('anthropic');
-      expect(computedEnv.GOOSE_MODEL).toBe('claude-sonnet-4-5');
+      expect(computedEnv.GOOSE_MODEL).toBe('claude-sonnet-4-6');
     });
 
     it('should set provider env vars from modelId', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-opus-4-5',
+        modelId: 'anthropic/claude-opus-4-6',
         settings: createSettings({
           apiKey: 'sk-test-key',
         }),
@@ -190,7 +190,7 @@ describe('GooseLanguageModel', () => {
 
       const computedEnv = (model as any).computedEnv;
       expect(computedEnv.GOOSE_PROVIDER).toBe('anthropic');
-      expect(computedEnv.GOOSE_MODEL).toBe('claude-opus-4-5');
+      expect(computedEnv.GOOSE_MODEL).toBe('claude-opus-4-6');
       expect(computedEnv.ANTHROPIC_API_KEY).toBe('sk-test-key');
     });
 
@@ -210,7 +210,7 @@ describe('GooseLanguageModel', () => {
 
     it('should set maxTurns env var when specified', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings({
           maxTurns: 500,
         }),
@@ -237,7 +237,7 @@ describe('GooseLanguageModel', () => {
 
     it('should order flags correctly', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings({
           sessionName: 'session1',
           resume: true,
@@ -270,7 +270,7 @@ describe('GooseLanguageModel', () => {
   describe('prompt extraction', () => {
     it('should extract string prompt', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings(),
       });
       const result = (model as any).extractPromptParts('Hello');
@@ -281,7 +281,7 @@ describe('GooseLanguageModel', () => {
 
     it('should extract array prompt with user message', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings(),
       });
       const result = (model as any).extractPromptParts([{ role: 'user', content: 'What is 2+2?' }]);
@@ -293,7 +293,7 @@ describe('GooseLanguageModel', () => {
 
     it('should separate system and user messages', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings(),
       });
       const result = (model as any).extractPromptParts([
@@ -308,7 +308,7 @@ describe('GooseLanguageModel', () => {
 
     it('should handle multi-part user content', () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings(),
       });
       const result = (model as any).extractPromptParts([
@@ -328,7 +328,7 @@ describe('GooseLanguageModel', () => {
   describe('abort signal support', () => {
     it('should reject doGenerate when signal is already aborted', async () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings(),
       });
       const controller = new AbortController();
@@ -344,7 +344,7 @@ describe('GooseLanguageModel', () => {
 
     it('should reject doStream when signal is already aborted', async () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings(),
       });
       const controller = new AbortController();
@@ -365,7 +365,7 @@ describe('GooseLanguageModel', () => {
 
     it('should kill process when abort is triggered during generation', async () => {
       const model = new GooseLanguageModel({
-        modelId: 'anthropic/claude-sonnet-4-5',
+        modelId: 'anthropic/claude-sonnet-4-6',
         settings: createSettings({
           binPath: 'sleep', // Use 'sleep' command as a long-running process
           timeout: 10000,
