@@ -3,6 +3,8 @@
  */
 
 import { execSync } from 'child_process';
+
+const MAX_BUFFER_MB = 50;
 import type { ModelMessage } from '@ai-sdk/provider-utils';
 import { convertGooseMessages, type GooseMessage, type Audience } from './convert.js';
 
@@ -23,6 +25,7 @@ export function exportSession(name: string, audience: Audience = 'user'): ModelM
   const sanitizedName = sanitizeShellArg(name);
   const stdout = execSync(`goose session export --name "${sanitizedName}" --format json`, {
     encoding: 'utf-8',
+    maxBuffer: MAX_BUFFER_MB * 1024 * 1024,
   });
 
   const session = JSON.parse(stdout) as { conversation?: GooseMessage[] };
@@ -41,6 +44,7 @@ export function exportSessionRaw(name: string): GooseMessage[] {
   const sanitizedName = sanitizeShellArg(name);
   const stdout = execSync(`goose session export --name "${sanitizedName}" --format json`, {
     encoding: 'utf-8',
+    maxBuffer: MAX_BUFFER_MB * 1024 * 1024,
   });
 
   const session = JSON.parse(stdout) as { conversation?: GooseMessage[] };
