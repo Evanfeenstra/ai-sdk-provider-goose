@@ -21,6 +21,7 @@ export const GooseModels = {
   'claude-sonnet-4-6': 'anthropic/claude-sonnet-4-6',
   'claude-haiku-4-5': 'anthropic/claude-haiku-4-5',
   'claude-opus-4-6': 'anthropic/claude-opus-4-6',
+  'claude-opus-4-7': 'anthropic/claude-opus-4-7',
   'claude-sonnet-4-0': 'anthropic/claude-sonnet-4-0',
   'claude-opus-4-0': 'anthropic/claude-opus-4-0',
 
@@ -61,6 +62,7 @@ export const GooseModels = {
 
   // OpenRouter
   'kimi-k2.5': 'openrouter/moonshotai/kimi-k2.5',
+  'kimi-k2.6': 'openrouter/moonshotai/kimi-k2.6',
 } as const;
 
 export type GooseModelShortcut = keyof typeof GooseModels;
